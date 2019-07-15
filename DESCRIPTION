@@ -10,7 +10,7 @@ data. The modules found can be used to redefine cell populations, unrevel novel
 gene associations and predict gene function by guilt-by-association. The package structure is based on 
 the CEMiTool package.
 Depends: R (>= 3.6)
-Imports: FCBF
+Imports: FCBF, CEMiTool
 Suggests: testthat, BiocManager
 License: GPL-3
 Encoding: UTF-8
