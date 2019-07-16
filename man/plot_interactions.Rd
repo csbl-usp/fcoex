@@ -3,37 +3,39 @@
 \docType{methods}
 \name{plot_interactions}
 \alias{plot_interactions}
-\alias{plot_interactions,CEMiTool-method}
+\alias{plot_interactions,fcoex-method}
 \title{Network visualization}
 \usage{
-plot_interactions(cem, ...)
+plot_interactions(fc, ...)
 
-\S4method{plot_interactions}{CEMiTool}(cem, n = 10, ...)
+\S4method{plot_interactions}{fcoex}(fc, n = 10, min_elements = 5, ...)
 }
 \arguments{
-\item{cem}{Object of class \code{CEMiTool}.}
+\item{fc}{Object of class \code{fcoex}.}
 
 \item{...}{Optional parameters.}
 
 \item{n}{number of nodes to label}
+
+\item{min_elements}{Minimum number of elements in a module for it to be plotted. Defaults to 5.}
 }
 \value{
-Object of class \code{CEMiTool} with profile plots
+Object of class \code{fcoex} with profile plots
 }
 \description{
 Creates a graph based on interactions provided
 }
 \examples{
-# Get example CEMiTool object
-data(cem)
+# Get example fcoex object
+data(fc)
 # Get example gene interactions data
-int <- system.file("extdata", "interactions.tsv", package = "CEMiTool")
+int <- system.file("extdata", "interactions.tsv", package = "fcoex")
 int_df <- read.delim(int)
-# Include interaction data into CEMiTool object
-interactions_data(cem) <- int_df
+# Include interaction data into fcoex object
+interactions_data(fc) <- int_df
 # Plot resulting networks
-cem <- plot_interactions(cem)
+fc <- plot_interactions(fc)
 # Check resulting plot
-show_plot(cem, "interaction")
+show_plot(fc, "interaction")
 
 }

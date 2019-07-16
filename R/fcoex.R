@@ -424,7 +424,7 @@ setMethod('show', signature(object='fcoex'),
 #' @return A .gmt file containing module genes in each row
 #'
 module_to_gmt <- function(fc, directory="./Tables"){
-    if(nrow(fc@module) == 0){
+    if(length(fc@module_list) == 0){
         stop("No modules in fcoex object! Did you run find_modules()?")
     }else{
         gene_modules <- fc@module

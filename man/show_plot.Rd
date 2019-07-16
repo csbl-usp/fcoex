@@ -3,33 +3,19 @@
 \docType{methods}
 \name{show_plot}
 \alias{show_plot}
-\alias{show_plot,CEMiTool-method}
-\title{Retrieve CEMiTool object plots}
+\alias{show_plot,fcoex-method}
+\title{Retrieve fcoex object plots}
 \usage{
-show_plot(cem, value)
+show_plot(fc, value)
 
-\S4method{show_plot}{CEMiTool}(cem, value = c("profile", "gsea", "ora",
-  "interaction", "beta_r2", "mean_k", "sample_tree", "mean_var", "hist",
-  "qq"))
+\S4method{show_plot}{fcoex}(fc)
 }
 \arguments{
-\item{cem}{Object of class \code{CEMiTool}.}
-
-\item{value}{A character string containing the name of the plot to be shown.
-One of "profile", "gsea", "ora", "interaction", "beta_r2", "mean_k", "sample_tree",
-"mean_var", "hist", "qq".}
+\item{fc}{Object of class \code{fcoex}.}
 }
 \value{
-A plot corresponding to a CEMiTool analysis
+A plot corresponding to a fcoex analysis
 }
 \description{
-Retrieve CEMiTool object plots
-}
-\examples{
-# Get example CEMiTool object
-data(cem)
-# Plot beta x R squared graph
-cem <- plot_beta_r2(cem)
-# Check plot
-show_plot(cem, "beta_r2")
+Retrieve fcoex object plots
 }
