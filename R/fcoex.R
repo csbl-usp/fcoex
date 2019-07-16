@@ -10,7 +10,7 @@ setOldClass('gtable')
 #' An S4 class to represent the fcoex analysis.
 #'
 #' @slot expression Normalized gene expression table from single-cells \code{data.frame}.
-#' @slot discretized_expressiion Discretized gene expression table from single-cells \code{data.frame}.
+#' @slot discretized_expression Discretized gene expression table from single-cells \code{data.frame}.
 #' @slot target Original target classes for the cells (\code{factor}).
 #' @slot selected_genes Character \code{vector} containing the names of genes  selected for analysis
 #' @slot module_list \code{list} containing genes in each module.
@@ -25,7 +25,7 @@ setOldClass('gtable')
 #' # Initialize fcoex object with expression
 #' fc <- new("fcoex", expression=expr0)
 setClass('fcoex', slots=list(expression='data.frame',
-                             discretized_expressiion ='data.frame',
+                             discretized_expression ='data.frame',
                                 target='factor',
                                 selected_genes='vector',
                                 module_list='list',
@@ -70,7 +70,7 @@ new_fcoex <- function(expr=data.frame(), target=vector()){
 #' Modulated by the alpha param, which enlarges (>1) or shrinks (<1) the "medium" interval. ),
 #' ),
 #' "kmeans"(Split in different groups by the kmeans algorithm. As many groups as specified by the centers param) and
-#' "min_max_%" (Similat to the "varying width", a binarization threshold in a % of the min-max range is set. (minmax% param)),
+#' "min_max_\%" (Similat to the "varying width", a binarization threshold in a % of the min-max range is set. (minmax\% param)),
 #' "GMM" (A Gaussian Mixture Model as implemented by the package mclust, trying to fit 2:5 Gaussians). Default is "varying_width"
 #' @param number_of_bins Number of equal-width bins for discretization.
 #' Note: it is a binary discretization, with the
@@ -78,13 +78,12 @@ new_fcoex <- function(expr=data.frame(), target=vector()){
 #' Defaults to 4.
 #' @param alpha Modulator for the "mean_sd" method.Enlarges (>1) or shrinks (<1) the "medium" interval. Defaults to 1.
 #' @param centers Modulator for the "kmeans" method. Defaults to 3.
-#' @param min_max_cutoff <- Modulator for the "min_max_%" method. Defaults to 0.25.
+#' @param min_max_cutoff <- Modulator for the "min_max_\%" method. Defaults to 0.25.
 #' @param show_pb Enables a progress bar for the discretization. Defaults to TRUE.
 #' @return A data frame with the discretized features in the same order as previously
 #' @import FCBF
-#' @examples
-#' @rdname discretize
 #' @export
+#' @rdname discretize
 setGeneric("discretize", function(fc, ...) {
     standardGeneric("discretize")
 })
@@ -99,14 +98,16 @@ setMethod("discretize", signature("fcoex"),
                    min_max_cutoff = 0.25,
                    show_pb = TRUE){
             expression_table <- fc@expression
-            discretized_expression <-FCBF::discretize_exprs(expression_table,
+             discretized_expression <-FCBF::discretize_exprs(expression_table,
                                                             number_of_bins,
                                                             method,
                                                             alpha,
                                                             centers,
                                                             min_max_cutoff,
                                                             show_pb)
-            fc@discretized_expressiion <- discretized_expression
+            colnames(discretized_expression) <- colnames(expression_table)
+            fc@discretized_expression <- discretized_expression
+            
             return(fc)
           })
 
@@ -123,16 +124,25 @@ setMethod("discretize", signature("fcoex"),
 #' @param fc A fcoex object containing a discretized expression table
 #' @param FCBF_threshold A threshold for the minimum correlation (as determined by symettrical uncertainty)
 #' between each variable and the class used for wrapped FCBF function. Defaults to 0.1.
-#' @param verbose Adds verbosity. Defaults to FALSE.
+#' @param verbose Adds verbosity. Defaults to TRUE
+#' @param n_genes Sets the number of genes to be selected in the first part of the algorithm.
+#' If left unchanged, it defaults to NULL and the thresh parameter is used.
+#' Caution: it overrides the thresh parameter altogether.
 #' @return Returns a list with the CBF modules found or a adjacency matrix of the graph
 #' @import dplyr
 #' @import progress
 #' @import FCBF
 #' @export
+#' @rdname find_cbf_modules
+setGeneric("find_cbf_modules", function(fc, ...) {
+standardGeneric("find_cbf_modules")
+})
 
-find_cbf_modules <- function(fc, FCBF_threshold = 0.1, verbose = FALSE){
-  discretized_exprs <- fc@discretized_expressiion
+#' @rdname find_cbf_modules
+setMethod("find_cbf_modules", signature("fcoex"), function(fc, n_genes = NULL, FCBF_threshold = 0.1, verbose = TRUE){
+  discretized_exprs <- fc@discretized_expression
   target <- fc@target
+  
   # get the SU scores for each gene
   message('Getting SU scores')
   su_ic_vector <- FCBF::get_su(discretized_exprs, target)
@@ -140,11 +150,14 @@ find_cbf_modules <- function(fc, FCBF_threshold = 0.1, verbose = FALSE){
   
   colnames(su_ic_vector)[1] <- 'SU'
   message('Running FCBF to find module headers')
-  fcbf_filtered <- FCBF::fcbf(discretized_exprs, target, thresh = FCBF_threshold, verbose = verbose)
+  fcbf_filtered <- FCBF::fcbf(discretized_exprs, target, n_genes, thresh = FCBF_threshold, verbose = verbose)
   fcbf_filtered$gene <- rownames(fcbf_filtered)
   # R does not like points. Subs for -.
   FCBF_genes <- gsub('\\.', '-', fcbf_filtered$gene)
   
+  if (length(n_genes)){
+    FCBF_threshold <- su_ic_vector$`sort(su_ic, decreasing = TRUE)`[n_genes]
+  }
   # get only those with an SU score above a threshold
   SU_threshold <- FCBF_threshold
   
@@ -199,7 +212,7 @@ find_cbf_modules <- function(fc, FCBF_threshold = 0.1, verbose = FALSE){
   fc@adjacency <- filtered_su_i_j_matrix
   fc@module_list <- list_of_fcbf_modules
   return(fc)
-}
+})
 
 
 

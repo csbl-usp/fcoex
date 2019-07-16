@@ -12,7 +12,7 @@ An S4 class to represent the fcoex analysis.
 \describe{
 \item{\code{expression}}{Normalized gene expression table from single-cells \code{data.frame}.}
 
-\item{\code{discretized_expressiion}}{Discretized gene expression table from single-cells \code{data.frame}.}
+\item{\code{discretized_expression}}{Discretized gene expression table from single-cells \code{data.frame}.}
 
 \item{\code{target}}{Original target classes for the cells (\code{factor}).}
 
