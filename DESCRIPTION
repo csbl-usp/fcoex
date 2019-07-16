@@ -1,6 +1,6 @@
 Package: fcoex
 Title: FCBF-based Co-expression 
-Version: 0.0.0
+Version: 0.0.1
 Authors@R: c(person("Tiago", "Lubiana", email = "tiago.lubiana.alves@usp.br",
   role = c("aut", "cre")), person("Helder", "Nakaya", email = "hnkaya@usp.br",
   role = c("aut","ths")))

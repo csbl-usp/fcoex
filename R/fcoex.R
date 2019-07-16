@@ -97,7 +97,7 @@ setMethod("discretize", signature("fcoex"),
                    centers = 3,
                    min_max_cutoff = 0.25,
                    show_pb = TRUE){
-            expression_table <- fc@expression
+             expression_table <- fc@expression
              discretized_expression <-FCBF::discretize_exprs(expression_table,
                                                             number_of_bins,
                                                             method,

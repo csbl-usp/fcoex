@@ -37,7 +37,7 @@ NULL
 #'
 #' @rdname plot_interactions
 #' @export
-setGeneric('plot_interactions', function(fc, ...) {
+setGeneric('plot_interactions', function(fc, n=10, min_elements = 5,...) {
     standardGeneric('plot_interactions')
 })
 
@@ -48,6 +48,7 @@ setMethod('plot_interactions', signature('fcoex'),
             stop("No modules in fcoex object! Did you run find_cbf_modules()?")
         }
         #fc <- get_args(fc, vars=mget(ls()))
+        fc <- mod_colors(fc)
         mod_cols <- fc@mod_colors
         mod_names <- names(fc@module_list)
         adjacency_full <- fc@adjacency
@@ -55,10 +56,10 @@ setMethod('plot_interactions', signature('fcoex'),
         rownames(adj) <- colnames(adj)
         res <- lapply(mod_names, function(name){
                   if(length(members_of_module) >= min_elements){
-                  members_of_module <- as.character(adjacency_full$genes[adjacency_full[,name]>0])
+                  members_of_module <- fc@module_list[[name]]
                   adj <- adj[members_of_module,members_of_module]
                   adj <- as.matrix(adj)
-                   plot_interaction(adj,
+                  plot_one_interaction(adj,
                                     n=n, color=mod_cols[name], name=name)
                   }
                })
@@ -67,7 +68,7 @@ setMethod('plot_interactions', signature('fcoex'),
         return(fc)
     })
 
-plot_interaction <- function(adjacency_matrix, n, color, name){
+plot_one_interaction <- function(adjacency_matrix, n, color, name){
     adj <- as.matrix(adjacency_matrix)
     ig_obj <- graph.adjacency(adj, weighted = T)
     degrees <- igraph::degree(ig_obj, normalized = FALSE)

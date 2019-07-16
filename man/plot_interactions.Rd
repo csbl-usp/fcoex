@@ -6,18 +6,18 @@
 \alias{plot_interactions,fcoex-method}
 \title{Network visualization}
 \usage{
-plot_interactions(fc, ...)
+plot_interactions(fc, n = 10, min_elements = 5, ...)
 
 \S4method{plot_interactions}{fcoex}(fc, n = 10, min_elements = 5, ...)
 }
 \arguments{
 \item{fc}{Object of class \code{fcoex}.}
 
-\item{...}{Optional parameters.}
-
 \item{n}{number of nodes to label}
 
 \item{min_elements}{Minimum number of elements in a module for it to be plotted. Defaults to 5.}
+
+\item{...}{Optional parameters.}
 }
 \value{
 Object of class \code{fcoex} with profile plots
