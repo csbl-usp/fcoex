@@ -18,6 +18,8 @@ setOldClass('gtable')
 #' @slot interaction_plot list of ggplot graphs with module gene interactions.
 #' @slot new_clusters \code{list} containing gene interactions present in modules.
 #' @slot mod_colors character \code{vector} containing colors associated with each network module.
+#' @slot ora Over-representation analysis results \code{data.frame}.
+#' @slot barplot_ora list of ggplot graphs with over-representation analysis results per module.
 # #' @slot parameters \code{list} containing analysis parameters.
 #' @examples
 #' # Get example expression data
@@ -33,7 +35,9 @@ setClass('fcoex', slots=list(expression='data.frame',
                                 interaction_plot='list',
                                 new_clusters='list',
                                 mod_colors='character',
-                                parameters='list'))
+                                parameters='list',
+                                ora='data.frame',
+                                barplot_ora='list'))
 
 setMethod("initialize", signature="fcoex",
     function(.Object, expression,target){
@@ -156,12 +160,12 @@ setMethod("find_cbf_modules", signature("fcoex"), function(fc, n_genes = NULL, F
   FCBF_genes <- gsub('\\.', '-', fcbf_filtered$gene)
   
   if (length(n_genes)){
-    FCBF_threshold <- su_ic_vector$`sort(su_ic, decreasing = TRUE)`[n_genes]
+    FCBF_threshold <- su_ic_vector$SU[n_genes]
   }
   # get only those with an SU score above a threshold
   SU_threshold <- FCBF_threshold
   
-  su_ic_vector_small <- su_ic_vector[su_ic_vector$SU > SU_threshold,]
+  su_ic_vector_small <- su_ic_vector[su_ic_vector[1] > SU_threshold,]
   
   
   SU_genes <- gsub('\\.', '-',su_ic_vector_small[,2])
