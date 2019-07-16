@@ -27,6 +27,10 @@ An S4 class to represent the fcoex analysis.
 \item{\code{new_clusters}}{\code{list} containing gene interactions present in modules.}
 
 \item{\code{mod_colors}}{character \code{vector} containing colors associated with each network module.}
+
+\item{\code{ora}}{Over-representation analysis results \code{data.frame}.}
+
+\item{\code{barplot_ora}}{list of ggplot graphs with over-representation analysis results per module.}
 }}
 
 \examples{

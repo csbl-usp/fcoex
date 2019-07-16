@@ -36,7 +36,7 @@ setMethod('plot_interactions', signature('fcoex'),
         }
         #fc <- get_args(fc, vars=mget(ls()))
         fc <- mod_colors(fc)
-        mod_cols <- fc@mod_colors
+        module_cols <- fc@mod_colors
         mod_names <- names(fc@module_list)
         adjacency_full <- fc@adjacency
         adj <- fc@adjacency[,-1]
@@ -47,7 +47,7 @@ setMethod('plot_interactions', signature('fcoex'),
                   adj <- adj[members_of_module,members_of_module]
                   adj <- as.matrix(adj)
                   .plot_one_interaction(adj,
-                                    n=n, color=mod_cols[name], name=name)
+                                    n=n, color=module_cols[name], name=name)
                   }
                })
         names(res) <- mod_names
@@ -211,11 +211,11 @@ setMethod('plot_ora', signature('fcoex'),
             
             #fc <- get_args(fc=fc, vars=mget(ls()))
             ora_splitted <- split(fc@ora, fc@ora$Module)
-            mod_cols <- mod_colors(fc)
+            module_cols <- mod_colors(fc)
             res <- lapply(ora_splitted, function(x){
               plot_ora_single(head(x, n=n),
                               pv_cut=pv_cut,
-                              graph_color=mod_cols[unique(x$Module)],
+                              graph_color=module_cols[unique(x$Module)],
                               title=unique(x$Module),
                               ...)
             })
