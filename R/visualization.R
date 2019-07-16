@@ -22,19 +22,6 @@ NULL
 #'
 #' @return Object of class \code{fcoex} with profile plots
 #'
-#' @examples
-#' # Get example fcoex object
-#' data(fc)
-#' # Get example gene interactions data
-#' int <- system.file("extdata", "interactions.tsv", package = "fcoex")
-#' int_df <- read.delim(int)
-#' # Include interaction data into fcoex object
-#' interactions_data(fc) <- int_df
-#' # Plot resulting networks
-#' fc <- plot_interactions(fc)
-#' # Check resulting plot
-#' show_plot(fc, "interaction")
-#'
 #' @rdname plot_interactions
 #' @export
 setGeneric('plot_interactions', function(fc, n=10, min_elements = 5,...) {
@@ -68,7 +55,14 @@ setMethod('plot_interactions', signature('fcoex'),
         return(fc)
     })
 
-plot_one_interaction <- function(adjacency_matrix, n, color, name){
+
+#' Network visualization
+#'
+#' Creates a graph based on interactions provided
+#'
+#' @param fc Object of class \code{fcoex}.
+#' @param ... Optional parameters.
+.plot_one_interaction <- function(adjacency_matrix, n, color, name){
     adj <- as.matrix(adjacency_matrix)
     ig_obj <- graph.adjacency(adj, weighted = T)
     degrees <- igraph::degree(ig_obj, normalized = FALSE)

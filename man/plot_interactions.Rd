@@ -25,17 +25,3 @@ Object of class \code{fcoex} with profile plots
 \description{
 Creates a graph based on interactions provided
 }
-\examples{
-# Get example fcoex object
-data(fc)
-# Get example gene interactions data
-int <- system.file("extdata", "interactions.tsv", package = "fcoex")
-int_df <- read.delim(int)
-# Include interaction data into fcoex object
-interactions_data(fc) <- int_df
-# Plot resulting networks
-fc <- plot_interactions(fc)
-# Check resulting plot
-show_plot(fc, "interaction")
-
-}
