@@ -174,12 +174,9 @@ setMethod('plot_ora', signature('fcoex'),
               plot_ora_single(head(x, n=n),
                               pv_cut=pv_cut,
                               graph_color=module_cols[unique(x$Module)],
-                              title=unique(x$Module),
-                              ...)
+                              title=unique(x$Module))
             })
-            modules <- names(res)
-            modules <- modules[order(as.numeric(stringr::str_extract(modules, "\\d+")))]
-            fc@barplot_ora <- res[modules]
+            fc@barplot_ora <- res
             return(fc)
           })
 
