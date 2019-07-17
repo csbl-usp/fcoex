@@ -156,7 +156,7 @@ setMethod("find_cbf_modules", signature("fcoex"), function(fc,
   # get the SU scores for each gene
   message('Getting SU scores')
   su_ic_vector <- FCBF::get_su(discretized_exprs, target)
-  su_ic_vector$gene <- rownames(su_ic_vector)
+  su_ic_vector$gene <- gsub('\\.', '-',rownames(su_ic_vector))
   
   colnames(su_ic_vector)[1] <- 'SU'
   message('Running FCBF to find module headers')
@@ -231,16 +231,16 @@ setMethod("find_cbf_modules", signature("fcoex"), function(fc,
     su_i_j_matrix[, i] <- gene_i_correlates[,1]
     su_i_j_matrix[, i]
   }
-  cl <- makeCluster(detectCores()-2) 
-  clusterExport(cl=cl, varlist = c("get_correlates","su_i_j_matrix", "discretized_exprs", "exprs_small"))
-  bla <- parLapply(cl,SU_genes, function(i){
+  cl <- detectCores()-2
+  bla <- mclapply(SU_genes, function(i){
     get_correlates(i, su_i_j_matrix, discretized_exprs, exprs_small)
- })
-  stopCluster(cl)
+ }, mc.cores = cl)
   su_i_j_matrix <- as.data.frame(bla)
   rownames(su_i_j_matrix) <- su_ic_vector_small$gene
   colnames(su_i_j_matrix) <- su_ic_vector_small$gene
+  su_i_j_matrix$genes <- su_ic_vector_small$gene
   }
+  
   filtered_su_i_j_matrix <- data.frame(genes =  SU_genes)
   
   message('Getting modules from adjacency matrix')
