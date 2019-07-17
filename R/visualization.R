@@ -141,48 +141,6 @@ setMethod('show_plot', signature('fcoex'),
 #       }
     })
 
-#' @title
-#' Save fcoex object plots
-#'
-#' @description
-#' Save plots into the directory specified by the \code{directory} argument.
-#'
-#' @param fc Object of class \code{fcoex}.
-#' @param name The name of the file to be saved.
-#' @param directory Directory into which the files will be saved.
-#' @param force If the directory exists, execution will not stop.
-#' @return A pdf file or files with the desired plot(s)
-#' @rdname save_plots
-#' @export
-setGeneric('save_plots', function(fc, ...) {
-    standardGeneric('save_plots')
-})
-
-#' @rdname save_plots
-setMethod('save_plots', signature('fcoex'),
-    function(fc, name, force=FALSE, directory="./Plots") {
-        if(dir.exists(directory)){
-            if(!force){
-                stop("Stopping analysis: ", directory, " already exists! Use force=TRUE to overwrite.")
-            }
-        }else{
-            dir.create(directory, recursive=TRUE)
-        }
-            plots <- list(fc@interaction_plot, fc@barplot_ora)
-            all_plots<- c("interaction", "ora")
-            names(plots) <- all_plots
-            if(length(plots) == 0){
-                message("Some plots have not been defined. Please run the appropriate plot functions. Saving available plots.")
-            }
-            lapply(names(plots), function(pl){
-                pdf(file=file.path(directory, paste0(name,".pdf")))
-                    print(plots[[pl]])
-                    dev.off()
-                })
-
-      })
-
-
 #' ORA visualization
 #'
 #' Creates a bar plot with the results of module overrepresentation analysis
@@ -211,7 +169,7 @@ setMethod('plot_ora', signature('fcoex'),
             
             #fc <- get_args(fc=fc, vars=mget(ls()))
             ora_splitted <- split(fc@ora, fc@ora$Module)
-            module_cols <- mod_colors(fc)
+            module_cols <- fc@mod_colors
             res <- lapply(ora_splitted, function(x){
               plot_ora_single(head(x, n=n),
                               pv_cut=pv_cut,
@@ -291,3 +249,44 @@ plot_ora_single <- function(es, ordr_by='p.adjust', max_length=50, pv_cut=0.05,
   return(res)
 }
 
+#' @title
+#' Save fcoex object plots
+#'
+#' @description
+#' Save plots into the directory specified by the \code{directory} argument.
+#'
+#' @param fc Object of class \code{fcoex}.
+#' @param name The name of the file to be saved.
+#' @param directory Directory into which the files will be saved.
+#' @param force If the directory exists, execution will not stop.
+#' @return A pdf file or files with the desired plot(s)
+#' @rdname save_plots
+#' @export
+setGeneric('save_plots', function(fc, ...) {
+  standardGeneric('save_plots')
+})
+
+#' @rdname save_plots
+setMethod('save_plots', signature('fcoex'),
+          function(fc, name, force=FALSE, directory="./Plots") {
+            if(dir.exists(directory)){
+              if(!force){
+                stop("Stopping analysis: ", directory, " already exists! Use force=TRUE to overwrite.")
+              }
+            }else{
+              dir.create(directory, recursive=TRUE)
+            }
+            plots <- list(fc@interaction_plot, fc@barplot_ora)
+            all_plots<- c("interaction", "ora")
+            names(plots) <- all_plots
+            plots <- Filter(function(x) length(x) >= 1, plots)
+            if(length(plots) < 2){
+              message("Some plots have not been defined. Please run the appropriate plot functions. Saving available plots.")
+            }
+            lapply(names(plots), function(pl){
+              pdf(file=file.path(directory, paste0(name,"_",pl,".pdf")))
+              print(plots[[pl]])
+              dev.off()
+            })
+            
+          })

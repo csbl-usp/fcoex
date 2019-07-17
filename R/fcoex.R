@@ -128,22 +128,28 @@ setMethod("discretize", signature("fcoex"),
 #' @param fc A fcoex object containing a discretized expression table
 #' @param FCBF_threshold A threshold for the minimum correlation (as determined by symettrical uncertainty)
 #' between each variable and the class used for wrapped FCBF function. Defaults to 0.1.
+#' @param is_parallel Uses package parallel to paralleliza calculations. Defaults to FALSE.
 #' @param verbose Adds verbosity. Defaults to TRUE
 #' @param n_genes Sets the number of genes to be selected in the first part of the algorithm.
 #' If left unchanged, it defaults to NULL and the thresh parameter is used.
 #' Caution: it overrides the thresh parameter altogether.
 #' @return Returns a list with the CBF modules found or a adjacency matrix of the graph
 #' @import dplyr
+#' @import parallel
 #' @import progress
 #' @import FCBF
-#' @export
+#' @exportSSS
 #' @rdname find_cbf_modules
 setGeneric("find_cbf_modules", function(fc, ...) {
 standardGeneric("find_cbf_modules")
 })
 
 #' @rdname find_cbf_modules
-setMethod("find_cbf_modules", signature("fcoex"), function(fc, n_genes = NULL, FCBF_threshold = 0.1, verbose = TRUE){
+setMethod("find_cbf_modules", signature("fcoex"), function(fc, 
+                                                           n_genes = NULL, 
+                                                           FCBF_threshold = 0.1, 
+                                                           verbose = TRUE,
+                                                           is_parallel = FALSE){
   discretized_exprs <- fc@discretized_expression
   target <- fc@target
   
@@ -178,6 +184,8 @@ setMethod("find_cbf_modules", signature("fcoex"), function(fc, n_genes = NULL, F
   # get and adjacency matrix for gene to gene correlation
   su_i_j_matrix <- data.frame(genes =  SU_genes)
   message('Calculating adjacency matrix')
+  
+  if (!is_parallel){
   pb_findclusters <- progress_bar$new(total = length(SU_genes),
                                       format =   "[:bar] :percent eta: :eta")
   # this can surely be improved for speed.
@@ -190,6 +198,48 @@ setMethod("find_cbf_modules", signature("fcoex"), function(fc, n_genes = NULL, F
     colnames(gene_i_correlates)[1] <- i
     su_i_j_matrix[, i] <- gene_i_correlates[,1]
     
+  }
+  }
+  
+  #      This was not faster than the for loop! ######
+  #  
+#'      get_correlates <- function(i, su_i_j_matrix, discretized_exprs, exprs_small){
+#'      gene_i <- as.factor(discretized_exprs[i, ])
+#'      gene_i_correlates <- FCBF::get_su(x = exprs_small, y = as.factor(exprs_small[i, ]))
+#'      gene_i_correlates$gene <- gsub('\\.', '-',rownames(gene_i_correlates))
+#'      gene_i_correlates <- gene_i_correlates[match(su_i_j_matrix$genes,gene_i_correlates$gene),]
+#'      colnames(gene_i_correlates)[1] <- i
+#'      su_i_j_matrix[, i] <- gene_i_correlates[,1]
+#'      su_i_j_matrix[, i]
+#'    }
+  #'   
+  #'   bla <- pblapply(SU_genes, function(x){
+  #'     get_correlates(x, su_i_j_matrix, discretized_exprs, exprs_small)
+  #'   })
+  #'   
+  #'   su_i_j_matrix <- as.data.frame(ble)
+  ################################################## 
+  
+  # Second Try
+  else{
+  get_correlates <- function(i, su_i_j_matrix, discretized_exprs, exprs_small){
+    gene_i <- as.factor(discretized_exprs[i, ])
+    gene_i_correlates <- FCBF::get_su(x = exprs_small, y = as.factor(exprs_small[i, ]))
+    gene_i_correlates$gene <- gsub('\\.', '-',rownames(gene_i_correlates))
+    gene_i_correlates <- gene_i_correlates[match(su_i_j_matrix$genes,gene_i_correlates$gene),]
+    colnames(gene_i_correlates)[1] <- i
+    su_i_j_matrix[, i] <- gene_i_correlates[,1]
+    su_i_j_matrix[, i]
+  }
+  cl <- makeCluster(detectCores()-2) 
+  clusterExport(cl=cl, varlist = c("get_correlates","su_i_j_matrix", "discretized_exprs", "exprs_small"))
+  bla <- parLapply(cl,SU_genes, function(i){
+    get_correlates(i, su_i_j_matrix, discretized_exprs, exprs_small)
+ })
+  stopCluster(cl)
+  su_i_j_matrix <- as.data.frame(bla)
+  rownames(su_i_j_matrix) <- su_ic_vector_small$gene
+  colnames(su_i_j_matrix) <- su_ic_vector_small$gene
   }
   filtered_su_i_j_matrix <- data.frame(genes =  SU_genes)
   

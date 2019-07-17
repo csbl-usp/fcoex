@@ -69,25 +69,3 @@ ora <- function(mod_name, gmt_list, allgenes, mods){
   return(result)
 }
 
-
-#' Module Overrepresentation Analysis
-#'
-#' Performs overrepresentation analysis for each co-expression module found.
-#'
-#' @param fc Object of class \code{fcoex}.
-#' @param gmt Object of class \code{data.frame} with 2 columns, one with
-#' pathways and one with genes
-#' @param verbose logical. Report analysis steps.
-#' @param ... Optional parameters.
-#'
-#' @return Object of class \code{fcoex}
-#'
-#' @seealso \code{\link{ora_data}}
-#'
-#' @examples
-#' # Get example fcoex object
-#' data(fc)
-#' # Read gmt file
- gmt <- read_gmt(system.file('extdata', 'pathways.gmt',
-                 package='CEMiTool'))
- 
