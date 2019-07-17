@@ -138,7 +138,7 @@ setMethod("discretize", signature("fcoex"),
 #' @import parallel
 #' @import progress
 #' @import FCBF
-#' @exportSSS
+#' @export
 #' @rdname find_cbf_modules
 setGeneric("find_cbf_modules", function(fc, ...) {
 standardGeneric("find_cbf_modules")
@@ -203,21 +203,21 @@ setMethod("find_cbf_modules", signature("fcoex"), function(fc,
   
   #      This was not faster than the for loop! ######
   #  
-#'      get_correlates <- function(i, su_i_j_matrix, discretized_exprs, exprs_small){
-#'      gene_i <- as.factor(discretized_exprs[i, ])
-#'      gene_i_correlates <- FCBF::get_su(x = exprs_small, y = as.factor(exprs_small[i, ]))
-#'      gene_i_correlates$gene <- gsub('\\.', '-',rownames(gene_i_correlates))
-#'      gene_i_correlates <- gene_i_correlates[match(su_i_j_matrix$genes,gene_i_correlates$gene),]
-#'      colnames(gene_i_correlates)[1] <- i
-#'      su_i_j_matrix[, i] <- gene_i_correlates[,1]
-#'      su_i_j_matrix[, i]
-#'    }
-  #'   
-  #'   bla <- pblapply(SU_genes, function(x){
-  #'     get_correlates(x, su_i_j_matrix, discretized_exprs, exprs_small)
-  #'   })
-  #'   
-  #'   su_i_j_matrix <- as.data.frame(ble)
+#      get_correlates <- function(i, su_i_j_matrix, discretized_exprs, exprs_small){
+#    gene_i <- as.factor(discretized_exprs[i, ])
+#     gene_i_correlates <- FCBF::get_su(x = exprs_small, y = as.factor(exprs_small[i, ]))
+#     gene_i_correlates$gene <- gsub('\\.', '-',rownames(gene_i_correlates))
+#   gene_i_correlates <- gene_i_correlates[match(su_i_j_matrix$genes,gene_i_correlates$gene),]
+#     colnames(gene_i_correlates)[1] <- i
+#      su_i_j_matrix[, i] <- gene_i_correlates[,1]
+#      su_i_j_matrix[, i]
+#    }
+  #   
+  #   bla <- pblapply(SU_genes, function(x){
+  #     get_correlates(x, su_i_j_matrix, discretized_exprs, exprs_small)
+  #   })
+  #   
+  #   su_i_j_matrix <- as.data.frame(ble)
   ################################################## 
   
   # Second Try

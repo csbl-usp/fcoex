@@ -9,7 +9,7 @@
 find_cbf_modules(fc, ...)
 
 \S4method{find_cbf_modules}{fcoex}(fc, n_genes = NULL,
-  FCBF_threshold = 0.1, verbose = TRUE)
+  FCBF_threshold = 0.1, verbose = TRUE, is_parallel = FALSE)
 }
 \arguments{
 \item{fc}{A fcoex object containing a discretized expression table}
@@ -22,6 +22,8 @@ Caution: it overrides the thresh parameter altogether.}
 between each variable and the class used for wrapped FCBF function. Defaults to 0.1.}
 
 \item{verbose}{Adds verbosity. Defaults to TRUE}
+
+\item{is_parallel}{Uses package parallel to paralleliza calculations. Defaults to FALSE.}
 }
 \value{
 Returns a list with the CBF modules found or a adjacency matrix of the graph
