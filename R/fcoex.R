@@ -199,6 +199,7 @@ setMethod("find_cbf_modules", signature("fcoex"), function(fc,
     su_i_j_matrix[, i] <- gene_i_correlates[,1]
     
   }
+  su_i_j_matrix <- su_i_j_matrix[,-1]
   }
   
   #      This was not faster than the for loop! ######
@@ -238,19 +239,15 @@ setMethod("find_cbf_modules", signature("fcoex"), function(fc,
   su_i_j_matrix <- as.data.frame(bla)
   rownames(su_i_j_matrix) <- su_ic_vector_small$gene
   colnames(su_i_j_matrix) <- su_ic_vector_small$gene
-  su_i_j_matrix$genes <- su_ic_vector_small$gene
   }
   
   filtered_su_i_j_matrix <- data.frame(genes =  SU_genes)
   
   message('Getting modules from adjacency matrix')
-  for (i in colnames(su_i_j_matrix[,-1])){
-    if (all(gsub("\\.", "-",su_ic_vector$gene[seq_len(length(su_i_j_matrix$genes))]) == as.character(su_i_j_matrix$genes))){
-      
-      tf_vector <- su_i_j_matrix[,i] > su_ic_vector$SU[seq_len(length(su_i_j_matrix$genes))]
-      
+  for (i in colnames(su_i_j_matrix)){
+      tf_vector <- su_i_j_matrix[,i] > su_ic_vector$SU[seq_len(length(su_ic_vector_small$gene))]
+  
       filtered_su_i_j_matrix[,i] <- su_i_j_matrix[,i] * tf_vector
-    }
   }
   
   
