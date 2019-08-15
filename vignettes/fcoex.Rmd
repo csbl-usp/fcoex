@@ -1,4 +1,4 @@
-#' #' #' ---
+---
 title: 'fcoex: Co-expression for single-cell data'
 output:
   html_document:
@@ -22,7 +22,7 @@ First of all, we will load and preprocess a single cell dataset from 10XGenomics
 ```{r}
 
 
-BiocManager::install(c('TENxPBMCData', 'scater', 'scran'))
+#BiocManager::install(c('TENxPBMCData', 'scater', 'scran'))
 library(TENxPBMCData)
 
 sce <- TENxPBMCData('pbmc3k')
@@ -50,9 +50,11 @@ sce <- scater::runPCA(sce, ncomponents = 50,
 
 # get clusters
 set.seed(1234) # to make results reproducible
-snng <- buildSNNGraph(sce, k = 50, d = 20)
+snng <- buildSNNGraph(sce, k = 15, use.dimred = "PCA")
 snng_clusters <- igraph::cluster_louvain(snng)
 colData(sce)$clusters <- as.factor(snng_clusters$membership)
+
+
 ```
 
 Now let's use the normalized data and the cluster labels to build the co-expresison networks!
