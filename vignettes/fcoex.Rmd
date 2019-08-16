@@ -21,7 +21,7 @@ First of all, we will load and preprocess a single cell dataset from 10XGenomics
 
 ```{r}
 
-
+library(SingleCellExperiment)
 #BiocManager::install(c('TENxPBMCData', 'scater', 'scran'))
 library(TENxPBMCData)
 
@@ -76,14 +76,17 @@ fc <- plot_ora(fc)
 save_plots(name = "fcoex_vignette", fc, force = T)
 ```
 
+There is now a folder with the correlations, to explore the data. 
+
+We will use the module assignments to subdivide the cells in populations of interest: 
+
 
 ```{r}
-gmt_fname <- system.file("extdata", "pathways.gmt", package = "CEMiTool")
-gmt_in <- read_gmt(gmt_fname)
 
-fc <- mod_ora(fc, gmt_in)
-fc <- plot_ora(fc)
-save_plots(name = "fcoex_vignette", fc, force = T)
+recluster <- function(seurat_object, genes, title = ""){
+  exprs_tmp <- as.data.frame(exprs[genes,])
+
+
+
 ```
-
 

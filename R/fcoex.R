@@ -20,6 +20,7 @@ setOldClass('gtable')
 #' @slot mod_colors character \code{vector} containing colors associated with each network module.
 #' @slot ora Over-representation analysis results \code{data.frame}.
 #' @slot barplot_ora list of ggplot graphs with over-representation analysis results per module.
+#' @slot mod_idents Identities of cells based on each co-expression module. Determined by the "recluster" method
 # #' @slot parameters \code{list} containing analysis parameters.
 #' @examples
 #' # Get example expression data
@@ -37,7 +38,8 @@ setClass('fcoex', slots=list(expression='data.frame',
                                 mod_colors='character',
                                 parameters='list',
                                 ora='data.frame',
-                                barplot_ora='list'))
+                                barplot_ora='list',
+                                mod_idents='list'))
 
 setMethod("initialize", signature="fcoex",
     function(.Object, expression,target){
@@ -675,4 +677,37 @@ setGeneric("ora_data", function(fc) {
 setMethod("ora_data", signature("fcoex"),
           function(fc){
             return(fc@ora)
+          })
+
+
+
+#' Recluster cells based on fcoex module composition
+#'
+#' @param fc Object of class \code{fcoex}
+#' @param hclust_method method for the hclust function. Defaults to "ward.D2".
+#' @param dist_method  method for the dist function. Defaults to "manhattan".
+#' @param k desired number of clustes. Defaults to 2.
+#' @export
+#' @rdname recluster
+setGeneric("recluster", function(fc, ...) {
+  standardGeneric("recluster")
+})
+#' @rdname recluster
+setMethod("recluster", signature("fcoex"),
+          function(fc,
+                   hclust_method = "ward.D2",
+                   dist_method = 'manhattan',
+                   k = 2
+){
+            mod_idents <-list()
+            for (i in names(fc@module_list)){
+              print(i)
+              expression_table <- fc@expression[fc@module_list[[i]],]
+              d <- dist(t(as.matrix(expression_table)), method = dist_method)
+              hc <- hclust(d, method = hclust_method)
+              idents <- as.factor(cutree(hc, k))
+              mod_idents[[i]] <- idents
+          }
+            fc@mod_idents <- mod_idents
+            return(fc)
           })

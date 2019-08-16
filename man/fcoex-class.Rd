@@ -31,6 +31,8 @@ An S4 class to represent the fcoex analysis.
 \item{\code{ora}}{Over-representation analysis results \code{data.frame}.}
 
 \item{\code{barplot_ora}}{list of ggplot graphs with over-representation analysis results per module.}
+
+\item{\code{mod_idents}}{Identities of cells based on each co-expression module. Determined by the "recluster" method}
 }}
 
 \examples{
