@@ -83,10 +83,7 @@ We will use the module assignments to subdivide the cells in populations of inte
 
 ```{r}
 
-recluster <- function(seurat_object, genes, title = ""){
-  exprs_tmp <- as.data.frame(exprs[genes,])
-
-
+fc <- recluster(fc)
 
 ```
 
