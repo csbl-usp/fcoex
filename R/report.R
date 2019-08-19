@@ -2,35 +2,35 @@
 #'  @import knitr
 #'  @importFrom DT datatable
 #'  @import htmltools
-#' 
+#'
 #' LL
-#' 
+#'
 #'  CEMiTool report
-#' 
+#'
 #'  Creates report for CEMiTool results
-#' 
+#'
 #'  @param cem Object of class \code{CEMiTool}.
 #'  @param directory Directory name for results.
 #'  @param max_rows_ora maximum number of rows in Over Representation Analysis table results
 #'  @param title Character string with the title of the report.
-#'  @param force If the directory exists, execution will not stop. 
+#'  @param force If the directory exists, execution will not stop.
 #'  @param ... parameters to rmarkdown::render
-#'  
+#'
 #'  @return An HTML file with an interactive report of CEMiTool analyses.
-#' 
+#'
 #'  @examples
-#'  \dontrun{  
+#'  \dontrun{
 #'  # Get example CEMiTool object
 #'  data(cem)
 #'  generate_report(cem, output_format=c("pdf_document", "html_document"))
 #'  }
-#' 
+#'
 #'  @rdname generate_report
 #'  @export
 #' tGeneric('generate_report', function(cem, ...) {
 #'   standardGeneric('generate_report')
-#' 
-#' 
+#'
+#'
 #'  @rdname generate_report
 #' tMethod('generate_report', signature('CEMiTool'),
 #'   function(cem, max_rows_ora=50, title="Report", directory="./Reports/Report", force=FALSE, ...) {

@@ -98,13 +98,18 @@ sce <- runUMAP(sce, use_dimred="PCA")
 
 colData(sce)
 sce@colData <- cbind(colData(sce), mod_S100A4 = fc@mod_idents$S100A4)
-
+sce@colData <- cbind(colData(sce), mod_IFITM3 = fc@mod_idents$IFITM3)
 # Let's see the original clusters
 plotReducedDim(sce, use_dimred="UMAP", colour_by="clusters")
 
-# And let's see the population represented in the module S100A4
+# And let's see the population represented in the modules IFITM3 and S100A4.
+# Notably, the patterns are largely influenced by the patterns of header genes
 plotReducedDim(sce, use_dimred="UMAP", colour_by="mod_S100A4")
+plotReducedDim(sce, use_dimred="UMAP", colour_by="S100A4")
+plotReducedDim(sce, use_dimred="UMAP", colour_by="mod_IFITM3")
+plotReducedDim(sce, use_dimred="UMAP", colour_by="IFITM3")
+
 ```
 
 
-
+AS
