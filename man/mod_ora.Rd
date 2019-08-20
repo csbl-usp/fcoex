@@ -9,9 +9,19 @@ fc <- mod_ora(fc, gmt)
 # Check results
 head(ora_data(fc))}
 \usage{
-mod_ora(fc, ...)
+mod_ora(fc, gmt, verbose = FALSE)
 
 \S4method{mod_ora}{fcoex}(fc, gmt, verbose = FALSE)
+}
+\arguments{
+\item{fc}{A fcoex object.}
+
+\item{gmt}{A gmt file with gene sets for ora analysis}
+
+\item{verbose}{Controls verbosity. Defaults to FALSE.}
+}
+\value{
+A fcoex object containing over-representation analysis data
 }
 \description{
 # Run module overrepresentation analysis

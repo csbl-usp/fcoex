@@ -11,6 +11,9 @@
 
 \item{...}{Optional parameters.}
 }
+\value{
+A ggplot2 ('gg') object
+}
 \description{
 Creates a graph based on interactions provided
 }

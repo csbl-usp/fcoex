@@ -10,13 +10,16 @@ An S4 class to represent the fcoex analysis.
 \section{Slots}{
 
 \describe{
-\item{\code{expression}}{Normalized gene expression table from single-cells \code{data.frame}.}
+\item{\code{expression}}{Normalized gene expression table from 
+single-cells \code{data.frame}.}
 
-\item{\code{discretized_expression}}{Discretized gene expression table from single-cells \code{data.frame}.}
+\item{\code{discretized_expression}}{Discretized gene expression table from 
+single-cells \code{data.frame}.}
 
 \item{\code{target}}{Original target classes for the cells (\code{factor}).}
 
-\item{\code{selected_genes}}{Character \code{vector} containing the names of genes  selected for analysis}
+\item{\code{selected_genes}}{Character \code{vector} containing the names of 
+genes selected for analysis}
 
 \item{\code{module_list}}{\code{list} containing genes in each module.}
 
@@ -35,9 +38,3 @@ An S4 class to represent the fcoex analysis.
 \item{\code{mod_idents}}{Identities of cells based on each co-expression module. Determined by the "recluster" method}
 }}
 
-\examples{
-# Get example expression data
-data(expr0)
-# Initialize fcoex object with expression
-fc <- new("fcoex", expression=expr0)
-}

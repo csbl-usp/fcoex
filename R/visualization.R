@@ -70,6 +70,7 @@ setMethod('plot_interactions', signature('fcoex'),
 #'
 #' @param fc Object of class \code{fcoex}.
 #' @param ... Optional parameters.
+#' @return  A ggplot2 ('gg') object
 .plot_one_interaction <- function(adjacency_matrix, n, color, name) {
   adj <- as.matrix(adjacency_matrix)
   ig_obj <- graph.adjacency(adj, weighted = TRUE, diag = FALSE)
@@ -94,7 +95,7 @@ setMethod('plot_interactions', signature('fcoex'),
     network::get.vertex.attribute(net_obj, "degree")
   plotcord[, "shouldLabel"] <- FALSE
   max_n <- min(n, length(degrees))
-  int_hubs <- names(sort(degrees, decreasing = TRUE))[1:max_n]
+  int_hubs <- names(sort(degrees, decreasing = TRUE))[seq_len(max_n)]
   int_bool <- plotcord[, "vertex.names"] %in% int_hubs
   sel_vertex <- int_hubs
   colnames(edges) <-  c("X1", "Y1", "X2", "Y2")

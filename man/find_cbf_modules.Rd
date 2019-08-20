@@ -6,7 +6,8 @@
 \alias{find_cbf_modules,fcoex-method}
 \title{find_cbf_modules}
 \usage{
-find_cbf_modules(fc, ...)
+find_cbf_modules(fc, n_genes = NULL, FCBF_threshold = 0.1,
+  verbose = TRUE, is_parallel = FALSE)
 
 \S4method{find_cbf_modules}{fcoex}(fc, n_genes = NULL,
   FCBF_threshold = 0.1, verbose = TRUE, is_parallel = FALSE)

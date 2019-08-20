@@ -9,10 +9,13 @@ setOldClass('gtable')
 
 #' An S4 class to represent the fcoex analysis.
 #'
-#' @slot expression Normalized gene expression table from single-cells \code{data.frame}.
-#' @slot discretized_expression Discretized gene expression table from single-cells \code{data.frame}.
+#' @slot expression Normalized gene expression table from 
+#' single-cells \code{data.frame}.
+#' @slot discretized_expression Discretized gene expression table from 
+#' single-cells \code{data.frame}.
 #' @slot target Original target classes for the cells (\code{factor}).
-#' @slot selected_genes Character \code{vector} containing the names of genes  selected for analysis
+#' @slot selected_genes Character \code{vector} containing the names of 
+#' genes selected for analysis
 #' @slot module_list \code{list} containing genes in each module.
 #' @slot adjacency \code{data.frame} containing the adjacency table for the selected genes.
 #' @slot interaction_plot list of ggplot graphs with module gene interactions.
@@ -22,11 +25,6 @@ setOldClass('gtable')
 #' @slot barplot_ora list of ggplot graphs with over-representation analysis results per module.
 #' @slot mod_idents Identities of cells based on each co-expression module. Determined by the "recluster" method
 # #' @slot parameters \code{list} containing analysis parameters.
-#' @examples
-#' # Get example expression data
-#' data(expr0)
-#' # Initialize fcoex object with expression
-#' fc <- new("fcoex", expression=expr0)
 setClass(
   'fcoex',
   slots = list(
@@ -93,8 +91,8 @@ new_fcoex <- function(expr = data.frame(), target = vector()) {
 #' @param show_pb Enables a progress bar for the discretization. Defaults to TRUE.
 #' @return A data frame with the discretized features in the same order as previously
 #' @import FCBF
-#' @export
 #' @rdname discretize
+#' @export
 setGeneric("discretize", function(fc, ...) {
   standardGeneric("discretize")
 })
@@ -124,6 +122,31 @@ setMethod("discretize", signature("fcoex"),
             return(fc)
           })
 
+
+#' .get_correlates 
+#' 
+#' auxiliary function for find_cbf_modules
+#' @param i A gene to be correlated
+#' @param su_i_j_matrix the dataframe with the correlations to be updated
+#' @param discretized_exprs the dataframe with discretized expression to extract a gene
+#' @param exprs_small the dataframe to after the filtering step
+#' @return the updated column of the su_i_j_matrix
+.get_correlates <- function(i,
+           su_i_j_matrix,
+           discretized_exprs,
+           exprs_small) {
+    gene_i <- as.factor(discretized_exprs[i,])
+    gene_i_correlates <-
+      FCBF::get_su(x = exprs_small, y = as.factor(exprs_small[i,]))
+    gene_i_correlates$gene <-
+      gsub('\\.', '-', rownames(gene_i_correlates))
+    gene_i_correlates <-
+      gene_i_correlates[match(su_i_j_matrix$genes, gene_i_correlates$gene), ]
+    colnames(gene_i_correlates)[1] <- i
+    su_i_j_matrix[, i] <- gene_i_correlates[, 1]
+    su_i_j_matrix[, i]
+  }
+
 #' find_cbf_modules
 #'
 #' find_cbf_modules uses Symmetrical Uncertainty as a correlation measure and the FCBF algorithm to
@@ -149,7 +172,11 @@ setMethod("discretize", signature("fcoex"),
 #' @import FCBF
 #' @export
 #' @rdname find_cbf_modules
-setGeneric("find_cbf_modules", function(fc, ...) {
+setGeneric("find_cbf_modules", function(fc,                                                           
+                                        n_genes = NULL,
+                                        FCBF_threshold = 0.1,
+                                        verbose = TRUE,
+                                        is_parallel = FALSE) {
   standardGeneric("find_cbf_modules")
 })
 
@@ -166,7 +193,6 @@ setMethod("find_cbf_modules", signature("fcoex"), function(fc,
   message('Getting SU scores')
   su_ic_vector <- FCBF::get_su(discretized_exprs, target)
   su_ic_vector$gene <- gsub('\\.', '-', rownames(su_ic_vector))
-  
   colnames(su_ic_vector)[1] <- 'SU'
   message('Running FCBF to find module headers')
   fcbf_filtered <-
@@ -178,24 +204,18 @@ setMethod("find_cbf_modules", signature("fcoex"), function(fc,
   fcbf_filtered$gene <- rownames(fcbf_filtered)
   # R does not like points. Subs for -.
   FCBF_genes <- gsub('\\.', '-', fcbf_filtered$gene)
-  
   if (length(n_genes)) {
     FCBF_threshold <- su_ic_vector$SU[n_genes]
   }
   # get only those with an SU score above a threshold
   SU_threshold <- FCBF_threshold
-  
   su_ic_vector_small <-
     su_ic_vector[su_ic_vector[1] > SU_threshold, ]
-  
-  
   SU_genes <- gsub('\\.', '-', su_ic_vector_small[, 2])
-  
   fc@selected_genes <- SU_genes
-  
   exprs_small <- discretized_exprs[SU_genes , ]
   
-  
+
   # get and adjacency matrix for gene to gene correlation
   su_i_j_matrix <- data.frame(genes =  SU_genes)
   message('Calculating adjacency matrix')
@@ -241,25 +261,9 @@ setMethod("find_cbf_modules", signature("fcoex"), function(fc,
   
   # Second Try
   else{
-    get_correlates <-
-      function(i,
-               su_i_j_matrix,
-               discretized_exprs,
-               exprs_small) {
-        gene_i <- as.factor(discretized_exprs[i,])
-        gene_i_correlates <-
-          FCBF::get_su(x = exprs_small, y = as.factor(exprs_small[i,]))
-        gene_i_correlates$gene <-
-          gsub('\\.', '-', rownames(gene_i_correlates))
-        gene_i_correlates <-
-          gene_i_correlates[match(su_i_j_matrix$genes, gene_i_correlates$gene), ]
-        colnames(gene_i_correlates)[1] <- i
-        su_i_j_matrix[, i] <- gene_i_correlates[, 1]
-        su_i_j_matrix[, i]
-      }
     cl <- detectCores() - 2
     bla <- mclapply(SU_genes, function(i) {
-      get_correlates(i, su_i_j_matrix, discretized_exprs, exprs_small)
+      .get_correlates(i, su_i_j_matrix, discretized_exprs, exprs_small)
     }, mc.cores = cl)
     su_i_j_matrix <- as.data.frame(bla)
     rownames(su_i_j_matrix) <- su_ic_vector_small$gene
@@ -272,7 +276,6 @@ setMethod("find_cbf_modules", signature("fcoex"), function(fc,
   for (i in colnames(su_i_j_matrix)) {
     tf_vector <-
       su_i_j_matrix[, i] > su_ic_vector$SU[seq_len(length(su_ic_vector_small$gene))]
-    
     filtered_su_i_j_matrix[, i] <- su_i_j_matrix[, i] * tf_vector
   }
   
@@ -300,7 +303,7 @@ setMethod("find_cbf_modules", signature("fcoex"), function(fc,
 #'
 #' @return A vector with color names.
 #' @rdname mod_colors
-#' @export
+#' @export   
 setGeneric("mod_colors", function(fc) {
   standardGeneric("mod_colors")
 })
@@ -314,9 +317,9 @@ setMethod("mod_colors", signature("fcoex"),
             if (nmod != 0) {
               if (length(fc@mod_colors) == 0) {
                 if (nmod <= 16) {
-                  cols <- rainbow(16, s = 1, v = 0.7)[1:nmod]
+                  cols <- rainbow(16, s = 1, v = 0.7)[seq_len(nmod)]
                 } else {
-                  cols <- rep(rainbow(16, s = 1, v = 0.7), ceiling(nmod / 16))[1:nmod]
+                  cols <- rep(rainbow(16, s = 1, v = 0.7), ceiling(nmod / 16))[seq_len(nmod)]
                 }
                 names(cols) <- mod_names
               } else {
@@ -527,7 +530,7 @@ module_to_gmt <- function(fc, directory = "./Tables") {
     gene_modules <- fc@module
     n_genes <-
       as.numeric(table(gene_modules$modules[gene_modules$modules != "Not.Correlated"]))
-    n_genes <- n_genes[1:(length(n_genes))]
+    n_genes <- n_genes[seq_len((length(n_genes)))]
     module_names <-
       as.character(unique(gene_modules[, "modules"]))
     module_names <-
@@ -540,11 +543,11 @@ module_to_gmt <- function(fc, directory = "./Tables") {
     
     rownames(gmt_df) <- module_names
     
-    for (i in 1:length(module_names)) {
+    for (i in seq_len(length(module_names))) {
       mod <- module_names[i]
       selected <-
         gene_modules[gene_modules$modules == mod, "genes"]
-      gmt_df[mod, 1:(length(selected))] <- selected
+      gmt_df[mod, seq_len(length((selected)))] <- selected
     }
     
     gmt_df <- as.data.frame(cbind(module_names, gmt_df))
@@ -690,10 +693,13 @@ setMethod('write_files', signature(fc = 'fcoex'),
 #' fc <- mod_ora(fc, gmt)
 #' # Check results
 #' head(ora_data(fc))
-#'
+#' @param fc A fcoex object.
+#' @param gmt A gmt file with gene sets for ora analysis
+#' @param verbose Controls verbosity. Defaults to FALSE. 
+#' @return  A fcoex object containing over-representation analysis data
 #' @rdname mod_ora
 #' @export
-setGeneric('mod_ora', function(fc, ...) {
+setGeneric('mod_ora', function(fc, gmt, verbose = FALSE) {
   standardGeneric('mod_ora')
 })
 
