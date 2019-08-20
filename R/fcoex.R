@@ -58,6 +58,7 @@ setMethod("initialize", signature = "fcoex",
 #' @return Object of class \code{fcoex}
 #' @examples
 #' # Create new fcoex object
+#' library(scRNAseq)
 #' fc <- new_fcoex()
 #' @export
 new_fcoex <- function(expr = data.frame(), target = vector()) {

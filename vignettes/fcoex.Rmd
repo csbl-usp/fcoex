@@ -36,7 +36,7 @@ rownames(sce) <- rowData(sce)[, "Symbol_TENx"]
 
 # subset for brevity
 set.seed(3)
-sce <- sce[sample(nrow(sce), 2000),]
+sce <- sce[hvg_genes,sample(ncol(sce),600)]
 ## counts dupes from top to bottom to make a logical vector and remove-it
 dupes <- duplicated(rownames(sce))
 
@@ -57,11 +57,15 @@ sce <- scater::runPCA(sce, ncomponents = 50,
 
 # get clusters
 set.seed(1234) # to make results reproducible
-snng <- buildSNNGraph(sce, k = 6, use.dimred = "PCA")
+snng <- buildSNNGraph(sce, k = 5, use.dimred = "PCA")
 snng_clusters <- igraph::cluster_louvain(snng)
 colData(sce)$clusters <- as.factor(snng_clusters$membership)
 
 
+#visualize the data
+library(scater)
+sce <- runUMAP(sce, use_dimred="PCA")
+plotReducedDim(sce, use_dimred="UMAP", colour_by="clusters")
 ```
 
 Now let's use the normalized data and the cluster labels to build the co-expresison networks!
@@ -73,7 +77,7 @@ exprs <- as.data.frame(assay(sce, 'logcounts'))
 library(fcoex)
 fc <- new_fcoex(data.frame(exprs),target)
 fc <- discretize(fc, number_of_bins = 8)
-fc <- find_cbf_modules(fc,n_genes = 200, verbose = FALSE)
+fc <- find_cbf_modules(fc,n_genes = 200, verbose = FALSE, is_parallel = TRUE)
 fc <- plot_interactions(fc)
 gmt_fname <- system.file("extdata", "pathways.gmt", package = "CEMiTool")
 gmt_in <- read_gmt(gmt_fname)
@@ -97,21 +101,21 @@ fc <- recluster(fc)
 
 We generated new labels based on each fcoex module. Now we will visualize them using UMAP
 ```{r}
-library(scater)
-sce <- runUMAP(sce, use_dimred="PCA")
 
-colData(sce)
-sce@colData <- cbind(colData(sce), mod_S100A4 = fc@mod_idents$S100A4)
-sce@colData <- cbind(colData(sce), mod_IFITM3 = fc@mod_idents$IFITM3)
+sce@colData <- cbind(colData(sce), mod_FCER1G = fc@mod_idents$FCER1G)
+sce@colData <- cbind(colData(sce), mod_CD3D = fc@mod_idents$CD3D)
 # Let's see the original clusters
 plotReducedDim(sce, use_dimred="UMAP", colour_by="clusters")
 
-# And let's see the population represented in the modules IFITM3 and S100A4.
+# And let's see the population represented in the modules CD3D and FCER1G.
 # Notably, the patterns are largely influenced by the patterns of header genes
-plotReducedDim(sce, use_dimred="UMAP", colour_by="mod_S100A4")
-plotReducedDim(sce, use_dimred="UMAP", colour_by="S100A4")
-plotReducedDim(sce, use_dimred="UMAP", colour_by="mod_IFITM3")
-plotReducedDim(sce, use_dimred="UMAP", colour_by="IFITM3")
+plotReducedDim(sce, use_dimred="UMAP", colour_by="mod_FCER1G")
+plotReducedDim(sce, use_dimred="UMAP", colour_by="FCER1G")
+plotReducedDim(sce, use_dimred="UMAP", colour_by="mod_CD3D")
+plotReducedDim(sce, use_dimred="UMAP", colour_by="CD3D")
+
+mini_pbmc3k <- sce
+save( file =  "data/mini_pbmc3k.rda", list =  "mini_pbmc3k")
 
 ```
 
