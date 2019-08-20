@@ -21,57 +21,18 @@ The goal of fcoex is to provide a simple and intuitive way to generate co-expres
 - Discretization of gene expression
 - Correlation and module detection via the FCBF algorithm (Fast Correlation-Based Filter)
 
-First of all, we will load and preprocess a single cell dataset from 10XGenomics (adapted from https://osca.bioconductor.org/a-basic-analysis.html#preprocessing-import-to-r, 14/08/2019):
+First of all, we will a already preprocessed single cell dataset from 10XGenomics ( preprocessed according to https://osca.bioconductor.org/a-basic-analysis.html#preprocessing-import-to-r, 14/08/2019). It contains peripheral blood mononuclear cells and the most variable genes.
 
 ```{r}
-
-library(SingleCellExperiment)
-#BiocManager::install(c('TENxPBMCData', 'scater', 'scran'))
-library(TENxPBMCData)
-
-sce <- TENxPBMCData('pbmc3k')
-
-## reassign rownames
-rownames(sce) <- rowData(sce)[, "Symbol_TENx"]
-
-# subset for brevity
-set.seed(3)
-sce <- sce[hvg_genes,sample(ncol(sce),600)]
-## counts dupes from top to bottom to make a logical vector and remove-it
-dupes <- duplicated(rownames(sce))
-
-sce <- sce[!dupes, ]
-
-# normalize data
-sce <- scater::normalize(sce)
-
-#get variable genes and run PCA
-library(scran)
-fit <- trendVar(sce, use.spikes = FALSE)
-dec <- decomposeVar(sce, fit)
-dec <- dec[order(dec$bio, decreasing = TRUE), ] # order by bio var
-hvg_genes <- rownames(dec)[dec$bio > 0]
-metadata(sce)$hvg_genes <- hvg_genes
-sce <- scater::runPCA(sce, ncomponents = 50,
-              feature_set = hvg_genes)
-
-# get clusters
-set.seed(1234) # to make results reproducible
-snng <- buildSNNGraph(sce, k = 5, use.dimred = "PCA")
-snng_clusters <- igraph::cluster_louvain(snng)
-colData(sce)$clusters <- as.factor(snng_clusters$membership)
-
-
-#visualize the data
-library(scater)
-sce <- runUMAP(sce, use_dimred="PCA")
-plotReducedDim(sce, use_dimred="UMAP", colour_by="clusters")
+data("mini_pbmc3k")
+mini_pbmc3k
 ```
 
-Now let's use the normalized data and the cluster labels to build the co-expresison networks!
+Now let's use the normalized data and the cluster labels to build the co-expresison networks.
+The labels were obtained by louvain clustering on a graph build from nearest neighbours. That means that these labels are a posteriori, and this depends on the choice of the analyst. 
 
 ```{r}
-target <- colData(sce)$clusters
+target <- colData(mini_pbmc3k)$clusters
 exprs <- as.data.frame(assay(sce, 'logcounts'))
 
 library(fcoex)
@@ -81,6 +42,8 @@ fc <- find_cbf_modules(fc,n_genes = 200, verbose = FALSE, is_parallel = TRUE)
 fc <- plot_interactions(fc)
 gmt_fname <- system.file("extdata", "pathways.gmt", package = "CEMiTool")
 gmt_in <- read_gmt(gmt_fname)
+
+
 
 fc <- mod_ora(fc, gmt_in)
 fc <- plot_ora(fc)
@@ -114,10 +77,5 @@ plotReducedDim(sce, use_dimred="UMAP", colour_by="FCER1G")
 plotReducedDim(sce, use_dimred="UMAP", colour_by="mod_CD3D")
 plotReducedDim(sce, use_dimred="UMAP", colour_by="CD3D")
 
-mini_pbmc3k <- sce
-save( file =  "data/mini_pbmc3k.rda", list =  "mini_pbmc3k")
-
 ```
 
-
-AS

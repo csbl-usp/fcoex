@@ -20,6 +20,9 @@ recluster(fc, ...)
 
 \item{k}{desired number of clustes. Defaults to 2.}
 }
+\value{
+Object of class \code{data.frame} with new clusters
+}
 \description{
 Recluster cells based on fcoex module composition
 }

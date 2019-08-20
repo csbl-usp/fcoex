@@ -782,6 +782,7 @@ setMethod("ora_data", signature("fcoex"),
 #' @param hclust_method method for the hclust function. Defaults to "ward.D2".
 #' @param dist_method  method for the dist function. Defaults to "manhattan".
 #' @param k desired number of clustes. Defaults to 2.
+#' @return Object of class \code{data.frame} with new clusters
 #' @export
 #' @rdname recluster
 setGeneric("recluster", function(fc, ...) {
