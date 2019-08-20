@@ -19,5 +19,6 @@ Create a fcoex object
 }
 \examples{
 # Create new fcoex object
+library(scRNAseq)
 fc <- new_fcoex()
 }
