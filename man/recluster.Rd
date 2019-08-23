@@ -22,6 +22,14 @@ recluster(fc, ...)
 }
 \value{
 Object of class \code{data.frame} with new clusters
+#' @examples 
+data("mini_pbmc3k")
+targets <- colData(mini_pbmc3k)$clusters
+exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
+fc <- new_fcoex(exprs, targets)
+fc <- discretize(fc)
+fc <- find_cbf_modules(fc)
+fc <- recluster(fc)
 }
 \description{
 Recluster cells based on fcoex module composition

@@ -19,7 +19,14 @@ NULL
 #' @param n number of nodes to label
 #' @param min_elements Minimum number of elements in a module for it to be plotted. Defaults to 5.
 #' @param ... Optional parameters.
-#'
+#' @examples 
+#' data("mini_pbmc3k")
+#' targets <- colData(mini_pbmc3k)$clusters
+#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
+#' fc <- new_fcoex(exprs, targets)
+#' fc <- discretize(fc)
+#' fc <- find_cbf_modules(fc)
+#' fc <- plot_interactions(fc)
 #' @return Object of class \code{fcoex} with profile plots
 #'
 #' @rdname plot_interactions
@@ -63,6 +70,108 @@ setMethod('plot_interactions', signature('fcoex'),
             return(fc)
           })
 
+#' Network visualization
+#'
+#' Creates network visualizations based on the adjacency matrix
+#' obtained with the find_cbf_modules method 
+#'
+#' @param fc Object of class \code{fcoex}.
+#' @param n number of nodes to label
+#' @param min_elements Minimum number of elements in a module for it to be plotted. Defaults to 5.
+#' @param ... Optional parameters.
+#' @examples 
+#' data("mini_pbmc3k")
+#' targets <- colData(mini_pbmc3k)$clusters
+#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
+#' fc <- new_fcoex(exprs, targets)
+#' fc <- discretize(fc)
+#' fc <- find_cbf_modules(fc)
+#' fc <- get_nets(fc)
+#' @return Object of class \code{fcoex} with profile plots
+#'
+#' @rdname get_nets
+#' @export
+setGeneric('get_nets', function(fc,
+                                         n = 10,
+                                         min_elements = 5,
+                                         ...) {
+  standardGeneric('get_nets')
+})
+
+#' @rdname get_nets
+setMethod('get_nets', signature('fcoex'),
+          function(fc,
+                   n = 10,
+                   min_elements = 5,
+                   ...) {
+            if (length(fc@module_list) == 0) {
+              stop("No modules in fcoex object! Did you run find_cbf_modules()?")
+            }
+            #fc <- get_args(fc, vars=mget(ls()))
+            fc <- mod_colors(fc)
+            module_cols <- fc@mod_colors
+            mod_names <- names(fc@module_list)
+            adjacency_full <- fc@adjacency
+            adj <- fc@adjacency[, -1]
+            rownames(adj) <- colnames(adj)
+            res <- lapply(mod_names, function(name) {
+              members_of_module <- fc@module_list[[name]]
+              if (length(members_of_module) >= min_elements) {
+                adj <- adj[members_of_module, members_of_module]
+                adj <- as.matrix(adj)
+                .plot_one_interaction(adj,
+                                      n = n,
+                                      color = module_cols[name],
+                                      name = name)
+              }
+            })
+            names(res) <- mod_names
+            fc@interaction_plot <- res[mod_names]
+            return(fc)
+          })
+
+#' Set module colors mod_colors attribute
+#' @param fc Object of class \code{fcoex}
+#'
+#' @return A vector with color names.
+#' @examples 
+#' data("mini_pbmc3k")
+#' targets <- colData(mini_pbmc3k)$clusters
+#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
+#' fc <- new_fcoex(exprs, targets)
+#' fc <- discretize(fc)
+#' fc <- find_cbf_modules(fc)
+#' mod_colors(fc)
+#' @rdname mod_colors
+setGeneric("mod_colors", function(fc) {
+  standardGeneric("mod_colors")
+})
+
+#' @rdname mod_colors
+setMethod("mod_colors", signature("fcoex"),
+          function(fc) {
+            mod_names <- names(fc@module_list)
+            nmod <- length(mod_names)
+            cols <- fc@mod_colors
+            if (nmod != 0) {
+              if (length(fc@mod_colors) == 0) {
+                if (nmod <= 16) {
+                  cols <- rainbow(16, s = 1, v = 0.7)[seq_len(nmod)]
+                } else {
+                  cols <- rep(rainbow(16, s = 1, v = 0.7), ceiling(nmod / 16))[seq_len(nmod)]
+                }
+                names(cols) <- mod_names
+              } else {
+                if (is.null(names(fc@mod_colors))) {
+                  warning("mod_colors should be a character vector with names corresponding to the modules")
+                } else if (!all(sort(names(fc@mod_colors)) == sort(mod_names))) {
+                  warning("mod_colors names do not match with modules!")
+                }
+              }
+            }
+            fc@mod_colors <- cols
+            return(fc)
+          })
 
 #' Network visualization
 #'
@@ -156,17 +265,25 @@ setMethod('plot_interactions', signature('fcoex'),
 }
 
 
-#' Retrieve fcoex object plots
+#' Retrieve fcoex net plots
 #'
 #' @param fc Object of class \code{fcoex}.
 #' @return A plot corresponding to a fcoex analysis
-#' @rdname show_plot
+#' #' @examples 
+#' data("mini_pbmc3k")
+#' targets <- colData(mini_pbmc3k)$clusters
+#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
+#' fc <- new_fcoex(exprs, targets)
+#' fc <- discretize(fc)
+#' fc <- find_cbf_modules(fc)
+#' show_net(fc)
+#' @rdname show_net
 #' @export
-setGeneric('show_plot', function(fc, value) {
+setGeneric('show_plot', function(fc) {
   standardGeneric('show_plot')
 })
 
-#' @rdname show_plot
+#' @rdname show_net
 setMethod('show_plot', signature('fcoex'),
           function(fc) {
             return(fc@interaction_plot)
@@ -183,6 +300,17 @@ setMethod('show_plot', signature('fcoex'),
 #' @param ... parameters to plot_ora_single
 #'
 #' @return Object of class \code{fcoex} with ORA plots
+#' @examples 
+#' data("mini_pbmc3k")
+#' targets <- colData(mini_pbmc3k)$clusters
+#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
+#' fc <- new_fcoex(exprs, targets)
+#' fc <- discretize(fc)
+#' fc <- find_cbf_modules(fc)
+#' gmt_fname <- system.file("extdata", "pathways.gmt", package = "CEMiTool")
+#' gmt_in <- read_gmt(gmt_fname)
+#' fc <- mod_ora(fc, gmt_in)
+#' fc <- plot_ora(fc)
 #' @rdname plot_ora
 #' @export
 setGeneric('plot_ora', function(fc, ...) {
@@ -313,9 +441,14 @@ plot_ora_single <-
 #' @param directory Directory into which the files will be saved.
 #' @param force If the directory exists, execution will not stop.
 #' @return A pdf file or files with the desired plot(s)
+#' @examples 
+#' data(fc)
+#' save_plots(fc, name = "Example")
 #' @rdname save_plots
 #' @export
-setGeneric('save_plots', function(fc, ...) {
+setGeneric('save_plots', function(fc, name,
+                                  force = FALSE,
+                                  directory = "./Plots") {
   standardGeneric('save_plots')
 })
 

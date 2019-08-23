@@ -16,3 +16,10 @@ A fcoex object.
 \description{
 Print a fcoex object
 }
+\examples{
+data("mini_pbmc3k")
+targets <- colData(mini_pbmc3k)$clusters
+exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
+fc <- new_fcoex(exprs, targets)
+fc
+}

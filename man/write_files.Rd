@@ -27,9 +27,10 @@ A directory containing fcoex results in files.
 Save the fcoex object in files
 }
 \examples{
-# Get example fcoex object
-data(fc)
-# Save fcoex results in files
+data("mini_pbmc3k")
+targets <- colData(mini_pbmc3k)$clusters
+exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
+fc <- new_fcoex(exprs, targets)
 write_files(fc, directory=".", force=TRUE)
 
 }

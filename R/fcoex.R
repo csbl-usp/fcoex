@@ -1,6 +1,7 @@
 #' @importFrom grDevices rainbow
 #' @importFrom utils write.table
 #' @importFrom methods new 'slot<-' show
+#' @import SingleCellExperiment
 #' @import dplyr
 
 setOldClass('gg')
@@ -58,8 +59,11 @@ setMethod("initialize", signature = "fcoex",
 #' @return Object of class \code{fcoex}
 #' @examples
 #' # Create new fcoex object
-#' library(scRNAseq)
-#' fc <- new_fcoex()
+#' data("mini_pbmc3k")
+#' targets <- colData(mini_pbmc3k)$clusters
+#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
+#' fc <- new_fcoex(exprs, targets)
+
 #' @export
 new_fcoex <- function(expr = data.frame(), target = vector()) {
   fc <- new("fcoex", expression = expr, target = target)
@@ -91,6 +95,12 @@ new_fcoex <- function(expr = data.frame(), target = vector()) {
 #' @param min_max_cutoff <- Modulator for the "min_max_\%" method. Defaults to 0.25.
 #' @param show_pb Enables a progress bar for the discretization. Defaults to TRUE.
 #' @return A data frame with the discretized features in the same order as previously
+#' @examples 
+#' #' data("mini_pbmc3k")
+#' targets <- colData(mini_pbmc3k)$clusters
+#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
+#' fc <- new_fcoex(exprs, targets)
+#' fc <- discretize(fc)
 #' @import FCBF
 #' @rdname discretize
 #' @export
@@ -166,6 +176,13 @@ setMethod("discretize", signature("fcoex"),
 #' @param n_genes Sets the number of genes to be selected in the first part of the algorithm.
 #' If left unchanged, it defaults to NULL and the thresh parameter is used.
 #' Caution: it overrides the thresh parameter altogether.
+#' @examples 
+#' data("mini_pbmc3k")
+#' targets <- colData(mini_pbmc3k)$clusters
+#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
+#' fc <- new_fcoex(exprs, targets)
+#' fc <- discretize(fc)
+#' fc <- find_cbf_modules(fc)
 #' @return Returns a list with the CBF modules found or a adjacency matrix of the graph
 #' @import dplyr
 #' @import parallel
@@ -299,42 +316,6 @@ setMethod("find_cbf_modules", signature("fcoex"), function(fc,
 
 
 
-#' Set module colors mod_colors attribute
-#' @param fc Object of class \code{fcoex}
-#'
-#' @return A vector with color names.
-#' @rdname mod_colors
-#' @export   
-setGeneric("mod_colors", function(fc) {
-  standardGeneric("mod_colors")
-})
-
-#' @rdname mod_colors
-setMethod("mod_colors", signature("fcoex"),
-          function(fc) {
-            mod_names <- names(fc@module_list)
-            nmod <- length(mod_names)
-            cols <- fc@mod_colors
-            if (nmod != 0) {
-              if (length(fc@mod_colors) == 0) {
-                if (nmod <= 16) {
-                  cols <- rainbow(16, s = 1, v = 0.7)[seq_len(nmod)]
-                } else {
-                  cols <- rep(rainbow(16, s = 1, v = 0.7), ceiling(nmod / 16))[seq_len(nmod)]
-                }
-                names(cols) <- mod_names
-              } else {
-                if (is.null(names(fc@mod_colors))) {
-                  warning("mod_colors should be a character vector with names corresponding to the modules")
-                } else if (!all(sort(names(fc@mod_colors)) == sort(mod_names))) {
-                  warning("mod_colors names do not match with modules!")
-                }
-              }
-            }
-            fc@mod_colors <- cols
-            return(fc)
-          })
-
 #' Get the number of modules in a fcoex object
 #'
 #' @param fc Object of class \code{fcoex}
@@ -342,10 +323,13 @@ setMethod("mod_colors", signature("fcoex"),
 #' @return number of modules
 #'
 #' @rdname nmodules
-#' @examples
-#' # Get example fcoex object
-#' data(fc)
-#' # Get the number of modules
+#' @examples 
+#' data("mini_pbmc3k")
+#' targets <- colData(mini_pbmc3k)$clusters
+#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
+#' fc <- new_fcoex(exprs, targets)
+#' fc <- discretize(fc)
+#' fc <- find_cbf_modules(fc)
 #' nmodules(fc)
 #'
 #' @export
@@ -373,6 +357,14 @@ setMethod('nmodules', signature('fcoex'),
 #' @param fc Object of class \code{fcoex}
 #' @param module Default is NULL. If a character string designating a module is
 #' given, the number of genes in that module is returned instead.
+#' @examples 
+#' data("mini_pbmc3k")
+#' targets <- colData(mini_pbmc3k)$clusters
+#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
+#' fc <- new_fcoex(exprs, targets)
+#' fc <- discretize(fc)
+#' fc <- find_cbf_modules(fc)
+#' mod_gene_num(fc)
 #' @return The number of genes in module(s)
 #'
 #' @rdname mod_gene_num
@@ -388,7 +380,7 @@ setMethod('mod_gene_num', signature(fc = 'fcoex'),
                 stop("Module '", module, "' not in fcoex object!")
               }
             }
-            if (!nrow(module_genes(fc)) > 0) {
+            if (!length(module_genes(fc)) > 0) {
               stop("No modules in fcoex object!")
             }
             if (!is.null(module)) {
@@ -406,14 +398,15 @@ setMethod('mod_gene_num', signature(fc = 'fcoex'),
 #' module. Defaults to \code{TRUE}.
 #'
 #' @return Module names
-#'
-#' @rdname mod_names
 #' @examples
-#' # Get example fcoex object
-#' data(fc)
-#' # Get module names
+#' data("mini_pbmc3k")
+#' targets <- colData(mini_pbmc3k)$clusters
+#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
+#' fc <- new_fcoex(exprs, targets)
+#' fc <- discretize(fc)
+#' fc <- find_cbf_modules(fc)
 #' mod_names(fc)
-#'
+#' @rdname mod_names
 #' @export
 setGeneric('mod_names', function(fc, include_NC = TRUE) {
   standardGeneric('mod_names')
@@ -444,12 +437,13 @@ setMethod('mod_names', signature(fc = 'fcoex'),
 #'
 #' @rdname module_genes
 #' @examples
-#' # Get example fcoex object
-#' data(fc)
-#' # Get the module genes
+#' data("mini_pbmc3k")
+#' targets <- colData(mini_pbmc3k)$clusters
+#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
+#' fc <- new_fcoex(exprs, targets)
+#' fc <- discretize(fc)
+#' fc <- find_cbf_modules(fc)
 #' module_genes(fc)
-#' # Get genes for module M1
-#' module_genes(fc, module="M1")
 #' @export
 setGeneric('module_genes', function(fc, module = NULL) {
   standardGeneric('module_genes')
@@ -482,7 +476,12 @@ setMethod('module_genes', signature(fc = 'fcoex'),
 #' @param object Object of class fcoex
 #'
 #' @return A fcoex object.
-#'
+#' @examples 
+#' data("mini_pbmc3k")
+#' targets <- colData(mini_pbmc3k)$clusters
+#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
+#' fc <- new_fcoex(exprs, targets)
+#' fc
 #' @export
 setMethod('show', signature(object = 'fcoex'),
           function(object) {
@@ -520,8 +519,13 @@ setMethod('show', signature(object = 'fcoex'),
 #'
 #' @keywords internal
 #'
-#' @param fc
-#'
+#' @param fc A fcoex object.
+#' @examples 
+#' data("mini_pbmc3k")
+#' targets <- colData(mini_pbmc3k)$clusters
+#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
+#' fc <- new_fcoex(exprs, targets)
+#' module_to_gmt(fc)
 #' @return A .gmt file containing module genes in each row
 #'
 module_to_gmt <- function(fc, directory = "./Tables") {
@@ -571,9 +575,10 @@ module_to_gmt <- function(fc, directory = "./Tables") {
 #' @param ... Optional parameters
 #' @return A directory containing fcoex results in files.
 #' @examples
-#' # Get example fcoex object
-#' data(fc)
-#' # Save fcoex results in files
+#' data("mini_pbmc3k")
+#' targets <- colData(mini_pbmc3k)$clusters
+#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
+#' fc <- new_fcoex(exprs, targets)
 #' write_files(fc, directory=".", force=TRUE)
 #'
 #' @rdname write_files
@@ -691,12 +696,20 @@ setMethod('write_files', signature(fc = 'fcoex'),
 
 
 #' # Run module overrepresentation analysis
-#' fc <- mod_ora(fc, gmt)
-#' # Check results
-#' head(ora_data(fc))
+#'
 #' @param fc A fcoex object.
 #' @param gmt A gmt file with gene sets for ora analysis
 #' @param verbose Controls verbosity. Defaults to FALSE. 
+#' @examples 
+#' data("mini_pbmc3k")
+#' targets <- colData(mini_pbmc3k)$clusters
+#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
+#' fc <- new_fcoex(exprs, targets)
+#' fc <- discretize(fc)
+#' fc <- find_cbf_modules(fc)
+#' gmt_fname <- system.file("extdata", "pathways.gmt", package = "CEMiTool")
+#' gmt_in <- read_gmt(gmt_fname)
+#' fc <- mod_ora(fc, gmt_in)
 #' @return  A fcoex object containing over-representation analysis data
 #' @rdname mod_ora
 #' @export
@@ -758,7 +771,9 @@ setMethod('mod_ora', signature('fcoex'),
 #' the \code{clusterProfiler} package documentation.
 #'
 #' @return Object of class \code{data.frame} with ORA data
-#'
+#' @examples 
+#' data("fc")
+#' ora_data(fc)
 #' @references Guangchuang Yu, Li-Gen Wang, Yanyan Han, Qing-Yu He. clusterProfiler:
 #' an R package for comparing biological themes among gene clusters. OMICS:
 #' A Journal of Integrative Biology. 2012, 16(5):284-287.
@@ -783,6 +798,14 @@ setMethod("ora_data", signature("fcoex"),
 #' @param dist_method  method for the dist function. Defaults to "manhattan".
 #' @param k desired number of clustes. Defaults to 2.
 #' @return Object of class \code{data.frame} with new clusters
+#' #' @examples 
+#' data("mini_pbmc3k")
+#' targets <- colData(mini_pbmc3k)$clusters
+#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
+#' fc <- new_fcoex(exprs, targets)
+#' fc <- discretize(fc)
+#' fc <- find_cbf_modules(fc)
+#' fc <- recluster(fc)
 #' @export
 #' @rdname recluster
 setGeneric("recluster", function(fc, ...) {

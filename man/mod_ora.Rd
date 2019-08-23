@@ -4,10 +4,7 @@
 \name{mod_ora}
 \alias{mod_ora}
 \alias{mod_ora,fcoex-method}
-\title{# Run module overrepresentation analysis
-fc <- mod_ora(fc, gmt)
-# Check results
-head(ora_data(fc))}
+\title{# Run module overrepresentation analysis}
 \usage{
 mod_ora(fc, gmt, verbose = FALSE)
 
@@ -25,7 +22,15 @@ A fcoex object containing over-representation analysis data
 }
 \description{
 # Run module overrepresentation analysis
-fc <- mod_ora(fc, gmt)
-# Check results
-head(ora_data(fc))
+}
+\examples{
+data("mini_pbmc3k")
+targets <- colData(mini_pbmc3k)$clusters
+exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
+fc <- new_fcoex(exprs, targets)
+fc <- discretize(fc)
+fc <- find_cbf_modules(fc)
+gmt_fname <- system.file("extdata", "pathways.gmt", package = "CEMiTool")
+gmt_in <- read_gmt(gmt_fname)
+fc <- mod_ora(fc, gmt_in)
 }

@@ -18,5 +18,20 @@
 #' @source \href{https://bioconductor.org/packages/release/data/experiment/html/TENxPBMCData.html}
 #' @examples
 #' data(mini_pbmc3k)
-#' 
+#' mini_pbmc3k
 "mini_pbmc3k"
+
+
+#' Example fcoex object
+#'
+#' Example fcoex object processed from the mini_pbmc3k dataset.
+#' 
+#' @name fc 
+#' @docType data
+#' @usage data(fc)
+#' @format An object of class \code{fcoex}
+#' @keywords datasets
+#' @examples
+#' data(fc)
+#' fc
+"fc"

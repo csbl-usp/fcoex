@@ -29,6 +29,10 @@ enriched for any given pathway. The BgRatio column shows the proportion of genes
 given pathway out of all the genes in the gmt file. For more details, please refer to
 the \code{clusterProfiler} package documentation.
 }
+\examples{
+data("fc")
+ora_data(fc)
+}
 \references{
 Guangchuang Yu, Li-Gen Wang, Yanyan Han, Qing-Yu He. clusterProfiler:
 an R package for comparing biological themes among gene clusters. OMICS:

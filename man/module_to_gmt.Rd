@@ -7,12 +7,19 @@
 module_to_gmt(fc, directory = "./Tables")
 }
 \arguments{
-\item{fc}{}
+\item{fc}{A fcoex object.}
 }
 \value{
 A .gmt file containing module genes in each row
 }
 \description{
 Transform module genes list to a gmt file
+}
+\examples{
+data("mini_pbmc3k")
+targets <- colData(mini_pbmc3k)$clusters
+exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
+fc <- new_fcoex(exprs, targets)
+module_to_gmt(fc)
 }
 \keyword{internal}

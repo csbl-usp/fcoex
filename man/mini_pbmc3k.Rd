@@ -25,6 +25,6 @@ UMAP already ran
 }
 \examples{
 data(mini_pbmc3k)
-
+mini_pbmc3k
 }
 \keyword{datasets}

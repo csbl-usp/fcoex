@@ -22,3 +22,12 @@ The number of genes in module(s)
 \description{
 Get the number of genes in modules in a fcoex object
 }
+\examples{
+data("mini_pbmc3k")
+targets <- colData(mini_pbmc3k)$clusters
+exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
+fc <- new_fcoex(exprs, targets)
+fc <- discretize(fc)
+fc <- find_cbf_modules(fc)
+mod_gene_num(fc)
+}

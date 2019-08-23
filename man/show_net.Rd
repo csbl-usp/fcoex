@@ -4,9 +4,9 @@
 \name{show_plot}
 \alias{show_plot}
 \alias{show_plot,fcoex-method}
-\title{Retrieve fcoex object plots}
+\title{Retrieve fcoex net plots}
 \usage{
-show_plot(fc, value)
+show_plot(fc)
 
 \S4method{show_plot}{fcoex}(fc)
 }
@@ -15,7 +15,15 @@ show_plot(fc, value)
 }
 \value{
 A plot corresponding to a fcoex analysis
+#' @examples 
+data("mini_pbmc3k")
+targets <- colData(mini_pbmc3k)$clusters
+exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
+fc <- new_fcoex(exprs, targets)
+fc <- discretize(fc)
+fc <- find_cbf_modules(fc)
+show_net(fc)
 }
 \description{
-Retrieve fcoex object plots
+Retrieve fcoex net plots
 }
