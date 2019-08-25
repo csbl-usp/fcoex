@@ -135,12 +135,7 @@ setMethod('get_nets', signature('fcoex'),
 #'
 #' @return A vector with color names.
 #' @examples 
-#' data("mini_pbmc3k")
-#' targets <- colData(mini_pbmc3k)$clusters
-#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
-#' fc <- new_fcoex(exprs, targets)
-#' fc <- discretize(fc)
-#' fc <- find_cbf_modules(fc)
+#' data("fc")
 #' mod_colors(fc)
 #' @rdname mod_colors
 setGeneric("mod_colors", function(fc) {
@@ -270,12 +265,7 @@ setMethod("mod_colors", signature("fcoex"),
 #' @param fc Object of class \code{fcoex}.
 #' @return A plot corresponding to a fcoex analysis
 #' #' @examples 
-#' data("mini_pbmc3k")
-#' targets <- colData(mini_pbmc3k)$clusters
-#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
-#' fc <- new_fcoex(exprs, targets)
-#' fc <- discretize(fc)
-#' fc <- find_cbf_modules(fc)
+#' data("fc")
 #' show_net(fc)
 #' @rdname show_net
 #' @export
@@ -301,12 +291,7 @@ setMethod('show_plot', signature('fcoex'),
 #'
 #' @return Object of class \code{fcoex} with ORA plots
 #' @examples 
-#' data("mini_pbmc3k")
-#' targets <- colData(mini_pbmc3k)$clusters
-#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
-#' fc <- new_fcoex(exprs, targets)
-#' fc <- discretize(fc)
-#' fc <- find_cbf_modules(fc)
+#' data("fc")
 #' gmt_fname <- system.file("extdata", "pathways.gmt", package = "CEMiTool")
 #' gmt_in <- read_gmt(gmt_fname)
 #' fc <- mod_ora(fc, gmt_in)

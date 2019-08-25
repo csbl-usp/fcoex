@@ -96,7 +96,7 @@ new_fcoex <- function(expr = data.frame(), target = vector()) {
 #' @param show_pb Enables a progress bar for the discretization. Defaults to TRUE.
 #' @return A data frame with the discretized features in the same order as previously
 #' @examples 
-#' #' data("mini_pbmc3k")
+#' data("mini_pbmc3k")
 #' targets <- colData(mini_pbmc3k)$clusters
 #' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
 #' fc <- new_fcoex(exprs, targets)
@@ -324,12 +324,7 @@ setMethod("find_cbf_modules", signature("fcoex"), function(fc,
 #'
 #' @rdname nmodules
 #' @examples 
-#' data("mini_pbmc3k")
-#' targets <- colData(mini_pbmc3k)$clusters
-#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
-#' fc <- new_fcoex(exprs, targets)
-#' fc <- discretize(fc)
-#' fc <- find_cbf_modules(fc)
+#' data("fc")
 #' nmodules(fc)
 #'
 #' @export
@@ -358,12 +353,7 @@ setMethod('nmodules', signature('fcoex'),
 #' @param module Default is NULL. If a character string designating a module is
 #' given, the number of genes in that module is returned instead.
 #' @examples 
-#' data("mini_pbmc3k")
-#' targets <- colData(mini_pbmc3k)$clusters
-#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
-#' fc <- new_fcoex(exprs, targets)
-#' fc <- discretize(fc)
-#' fc <- find_cbf_modules(fc)
+#' data("fc")
 #' mod_gene_num(fc)
 #' @return The number of genes in module(s)
 #'
@@ -399,12 +389,7 @@ setMethod('mod_gene_num', signature(fc = 'fcoex'),
 #'
 #' @return Module names
 #' @examples
-#' data("mini_pbmc3k")
-#' targets <- colData(mini_pbmc3k)$clusters
-#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
-#' fc <- new_fcoex(exprs, targets)
-#' fc <- discretize(fc)
-#' fc <- find_cbf_modules(fc)
+#' data("fc")
 #' mod_names(fc)
 #' @rdname mod_names
 #' @export
@@ -437,12 +422,7 @@ setMethod('mod_names', signature(fc = 'fcoex'),
 #'
 #' @rdname module_genes
 #' @examples
-#' data("mini_pbmc3k")
-#' targets <- colData(mini_pbmc3k)$clusters
-#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
-#' fc <- new_fcoex(exprs, targets)
-#' fc <- discretize(fc)
-#' fc <- find_cbf_modules(fc)
+#' data("fc")
 #' module_genes(fc)
 #' @export
 setGeneric('module_genes', function(fc, module = NULL) {
@@ -477,10 +457,7 @@ setMethod('module_genes', signature(fc = 'fcoex'),
 #'
 #' @return A fcoex object.
 #' @examples 
-#' data("mini_pbmc3k")
-#' targets <- colData(mini_pbmc3k)$clusters
-#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
-#' fc <- new_fcoex(exprs, targets)
+#' data("fc")
 #' fc
 #' @export
 setMethod('show', signature(object = 'fcoex'),
@@ -521,10 +498,7 @@ setMethod('show', signature(object = 'fcoex'),
 #'
 #' @param fc A fcoex object.
 #' @examples 
-#' data("mini_pbmc3k")
-#' targets <- colData(mini_pbmc3k)$clusters
-#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
-#' fc <- new_fcoex(exprs, targets)
+#' data("fc")
 #' module_to_gmt(fc)
 #' @return A .gmt file containing module genes in each row
 #'
@@ -575,10 +549,7 @@ module_to_gmt <- function(fc, directory = "./Tables") {
 #' @param ... Optional parameters
 #' @return A directory containing fcoex results in files.
 #' @examples
-#' data("mini_pbmc3k")
-#' targets <- colData(mini_pbmc3k)$clusters
-#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
-#' fc <- new_fcoex(exprs, targets)
+#' data("fc")
 #' write_files(fc, directory=".", force=TRUE)
 #'
 #' @rdname write_files
@@ -701,12 +672,7 @@ setMethod('write_files', signature(fc = 'fcoex'),
 #' @param gmt A gmt file with gene sets for ora analysis
 #' @param verbose Controls verbosity. Defaults to FALSE. 
 #' @examples 
-#' data("mini_pbmc3k")
-#' targets <- colData(mini_pbmc3k)$clusters
-#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
-#' fc <- new_fcoex(exprs, targets)
-#' fc <- discretize(fc)
-#' fc <- find_cbf_modules(fc)
+#' data("fc")
 #' gmt_fname <- system.file("extdata", "pathways.gmt", package = "CEMiTool")
 #' gmt_in <- read_gmt(gmt_fname)
 #' fc <- mod_ora(fc, gmt_in)
@@ -799,12 +765,7 @@ setMethod("ora_data", signature("fcoex"),
 #' @param k desired number of clustes. Defaults to 2.
 #' @return Object of class \code{data.frame} with new clusters
 #' #' @examples 
-#' data("mini_pbmc3k")
-#' targets <- colData(mini_pbmc3k)$clusters
-#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
-#' fc <- new_fcoex(exprs, targets)
-#' fc <- discretize(fc)
-#' fc <- find_cbf_modules(fc)
+#' data("fc")
 #' fc <- recluster(fc)
 #' @export
 #' @rdname recluster

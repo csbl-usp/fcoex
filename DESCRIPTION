@@ -6,7 +6,7 @@ Authors@R: c(person("Tiago", "Lubiana", email = "tiago.lubiana.alves@usp.br",
   role = c("aut","ths")))
 Description: The fcoex package implements an easy-to use interface to co-expression analysisbased on the FCBF (Fast Correlation-Based Filter) algorithm. it was implemented especifically to deal with single-cell data. The modules found can be used to redefine cell populations, unrevel novel gene associations and predict gene function by guilt-by-association. The package structure is based on the CEMiTool package.
 Depends: R (>= 3.6)
-Imports: FCBF, parallel, progress, dplyr, ggplot2, ggrepel, igraph, grid, intergraph, stringr, clusterProfiler, data.table, grDevices, methods, network, scales, sna, utils
+Imports: FCBF, parallel, progress, dplyr, ggplot2, ggrepel, igraph, grid, intergraph, stringr, clusterProfiler, data.table, grDevices, methods, network, scales, sna, utils, SingleCellExperiment
 Suggests: 
     testthat (>= 2.1.0),
     BiocManager,
