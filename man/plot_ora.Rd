@@ -26,12 +26,7 @@ Object of class \code{fcoex} with ORA plots
 Creates a bar plot with the results of module overrepresentation analysis
 }
 \examples{
-data("mini_pbmc3k")
-targets <- colData(mini_pbmc3k)$clusters
-exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
-fc <- new_fcoex(exprs, targets)
-fc <- discretize(fc)
-fc <- find_cbf_modules(fc)
+data("fc")
 gmt_fname <- system.file("extdata", "pathways.gmt", package = "CEMiTool")
 gmt_in <- read_gmt(gmt_fname)
 fc <- mod_ora(fc, gmt_in)

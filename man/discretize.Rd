@@ -48,7 +48,7 @@ Set the discretized expression attribute
 Uses the discretize_exprs function of the FCBF package
 }
 \examples{
-#' data("mini_pbmc3k")
+data("mini_pbmc3k")
 targets <- colData(mini_pbmc3k)$clusters
 exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
 fc <- new_fcoex(exprs, targets)

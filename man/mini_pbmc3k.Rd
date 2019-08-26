@@ -12,15 +12,16 @@
 data(mini_pbmc3k)
 }
 \description{
-A subset with 600 sampled cells and the top 1700 variable 
+A subset with 600 sampled cells and the top 1700 variable
 genes from the  TENxPBMCData package pbmc3k dataset.
 }
 \details{
-Preprocessed in accordance to OSCA (August 2019, https://osca.bioconductor.org/)
+Preprocessed in accordance to OSCA (August 2019, 
+https://osca.bioconductor.org/)
 
 scater::normalized .
 PCA with 50 components.
-snn graph on the PCA space + louvain clustering to yield 8 clusters . 
+snn graph on the PCA space + louvain clustering to yield 8 clusters .
 UMAP already ran
 }
 \examples{

@@ -16,10 +16,7 @@ A .gmt file containing module genes in each row
 Transform module genes list to a gmt file
 }
 \examples{
-data("mini_pbmc3k")
-targets <- colData(mini_pbmc3k)$clusters
-exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
-fc <- new_fcoex(exprs, targets)
+data("fc")
 module_to_gmt(fc)
 }
 \keyword{internal}
