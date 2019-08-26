@@ -3,6 +3,7 @@
 export(discretize)
 export(find_cbf_modules)
 export(get_nets)
+export(idents)
 export(mod_gene_num)
 export(mod_names)
 export(mod_ora)

@@ -18,14 +18,19 @@ setOldClass('gtable')
 #' @slot selected_genes Character \code{vector} containing the names of 
 #' genes selected for analysis
 #' @slot module_list \code{list} containing genes in each module.
-#' @slot adjacency \code{data.frame} containing the adjacency table for the selected genes.
+#' @slot adjacency \code{data.frame} containing the adjacency table for 
+#' the selected genes.
 #' @slot interaction_plot list of ggplot graphs with module gene interactions.
-#' @slot new_clusters \code{list} containing gene interactions present in modules.
-#' @slot mod_colors character \code{vector} containing colors associated with each network module.
+#' @slot new_clusters \code{list} containing gene interactions present in 
+#' modules.
+#' @slot mod_colors character \code{vector} containing colors associated with 
+#' each network module.
 #' @slot ora Over-representation analysis results \code{data.frame}.
-#' @slot barplot_ora list of ggplot graphs with over-representation analysis results per module.
-#' @slot mod_idents Identities of cells based on each co-expression module. Determined by the "recluster" method
-# #' @slot parameters \code{list} containing analysis parameters.
+#' @slot barplot_ora list of ggplot graphs with over-representation analysis 
+#' results per module.
+#' @slot mod_idents Identities of cells based on each co-expression module. 
+#' Determined by the "recluster" method
+#' @slot parameters \code{list} containing analysis parameters.
 setClass(
   'fcoex',
   slots = list(
@@ -54,7 +59,8 @@ setMethod("initialize", signature = "fcoex",
 
 #' Create a fcoex object
 #'
-#' @param expression Normalized gene expression table from single-cells \code{data.frame}.
+#' @param expression Normalized gene expression table from single-cells
+#'  \code{data.frame}.
 #' @param target Original target classes for the cells (\code{factor}).
 #' @return Object of class \code{fcoex}
 #' @examples
@@ -76,25 +82,36 @@ new_fcoex <- function(expr = data.frame(), target = vector()) {
 #' Uses the discretize_exprs function of the FCBF package
 #'
 #' @param fc Object of class \code{fcoex}
-#' @param method Method applied to all genes for discretization. Methods available: "varying_width"
+#' @param method Method applied to all genes for discretization. 
+#' Methods available: "varying_width"
 #'  (Binarization modulated by the number_of_bins param),
 #' "mean" (Split in ON/OFF by each gene mean expression),
 #' "median" (Split in ON/OFF by each gene median expression),
-#' "mean_sd"(Split in low/medium/high by each assigning "medium" to the interval between mean +- standard_deviation.
-#' Modulated by the alpha param, which enlarges (>1) or shrinks (<1) the "medium" interval. ),
+#' "mean_sd"(Split in low/medium/high by each assigning "medium" to 
+#' the interval between mean +- standard_deviation.
+#' Modulated by the alpha param, which enlarges (>1) or shrinks (<1) the 
+#' "medium" interval. ),
 #' ),
-#' "kmeans"(Split in different groups by the kmeans algorithm. As many groups as specified by the centers param) and
-#' "min_max_\%" (Similat to the "varying width", a binarization threshold in a % of the min-max range is set. (minmax\% param)),
-#' "GMM" (A Gaussian Mixture Model as implemented by the package mclust, trying to fit 2:5 Gaussians). Default is "varying_width"
+#' "kmeans"(Split in different groups by the kmeans algorithm. As many 
+#' groups as specified by the centers param) and
+#' "min_max_\%" (Similat to the "varying width", a binarization threshold 
+#' in a % of the min-max range is set. (minmax\% param)),
+#' "GMM" (A Gaussian Mixture Model as implemented by the package mclust, 
+#' trying to fit 2:5 Gaussians). Default is "varying_width"
+#' 
 #' @param number_of_bins Number of equal-width bins for discretization.
 #' Note: it is a binary discretization, with the
-#' first bin becoming one class ('low') and the other bins, another class ('high').
-#' Defaults to 4.
-#' @param alpha Modulator for the "mean_sd" method.Enlarges (>1) or shrinks (<1) the "medium" interval. Defaults to 1.
+#' first bin becoming one class ('low') and the other bins, another class 
+#' ('high').#' Defaults to 4.
+#' @param alpha Modulator for the "mean_sd" method.Enlarges (>1) or 
+#' shrinks (<1) the "medium" interval. Defaults to 1.
 #' @param centers Modulator for the "kmeans" method. Defaults to 3.
-#' @param min_max_cutoff <- Modulator for the "min_max_\%" method. Defaults to 0.25.
-#' @param show_pb Enables a progress bar for the discretization. Defaults to TRUE.
-#' @return A data frame with the discretized features in the same order as previously
+#' @param min_max_cutoff <- Modulator for the "min_max_\%" method. 
+#' Defaults to 0.25.
+#' @param show_pb Enables a progress bar for the discretization. 
+#' Defaults to TRUE.
+#' @return A data frame with the discretized features in the same 
+#' order as previously
 #' @examples 
 #' data("mini_pbmc3k")
 #' targets <- colData(mini_pbmc3k)$clusters
@@ -139,7 +156,8 @@ setMethod("discretize", signature("fcoex"),
 #' auxiliary function for find_cbf_modules
 #' @param i A gene to be correlated
 #' @param su_i_j_matrix the dataframe with the correlations to be updated
-#' @param discretized_exprs the dataframe with discretized expression to extract a gene
+#' @param discretized_exprs the dataframe with discretized expression 
+#' to extract a gene
 #' @param exprs_small the dataframe to after the filtering step
 #' @return the updated column of the su_i_j_matrix
 .get_correlates <- function(i,
@@ -160,22 +178,29 @@ setMethod("discretize", signature("fcoex"),
 
 #' find_cbf_modules
 #'
-#' find_cbf_modules uses Symmetrical Uncertainty as a correlation measure and the FCBF algorithm to
+#' find_cbf_modules uses Symmetrical Uncertainty as a correlation measure
+#'  and the FCBF algorithm to
 #'
 #' 1 - Filter the gene list by correlations to a class (Step 1)
 #'
 #' and
 #'
-#' 2 - Determine soft thresholds for coexpression to genes predominantly correlated to a class.
+#' 2 - Determine soft thresholds for coexpression to genes predominantly 
+#' correlated to a class.
 #'
 #' @param fc A fcoex object containing a discretized expression table
-#' @param FCBF_threshold A threshold for the minimum correlation (as determined by symettrical uncertainty)
-#' between each variable and the class used for wrapped FCBF function. Defaults to 0.1.
-#' @param is_parallel Uses package parallel to paralleliza calculations. Defaults to FALSE.
+#' @param FCBF_threshold A threshold for the minimum correlation (as 
+#' determined by symettrical uncertainty)
+#' between each variable and the class used for wrapped FCBF function. 
+#' Defaults to 0.1.
+#' @param is_parallel Uses package parallel to paralleliza calculations. 
+#' Defaults to FALSE.
 #' @param verbose Adds verbosity. Defaults to TRUE
-#' @param n_genes Sets the number of genes to be selected in the first part of the algorithm.
-#' If left unchanged, it defaults to NULL and the thresh parameter is used.
+#' @param n_genes Sets the number of genes to be selected in the first 
+#' part of the algorithm. If left unchanged, it defaults to NULL and the 
+#' thresh parameter is used. 
 #' Caution: it overrides the thresh parameter altogether.
+#' 
 #' @examples 
 #' data("mini_pbmc3k")
 #' targets <- colData(mini_pbmc3k)$clusters
@@ -199,11 +224,13 @@ setGeneric("find_cbf_modules", function(fc,
 })
 
 #' @rdname find_cbf_modules
-setMethod("find_cbf_modules", signature("fcoex"), function(fc,
-                                                           n_genes = NULL,
-                                                           FCBF_threshold = 0.1,
-                                                           verbose = TRUE,
-                                                           is_parallel = FALSE) {
+setMethod("find_cbf_modules", signature("fcoex"), 
+          function(fc,
+                                                    n_genes = NULL,
+                                                    FCBF_threshold = 0.1,
+                                                    verbose = TRUE,
+                                                    is_parallel = FALSE) {
+  
   discretized_exprs <- fc@discretized_expression
   target <- fc@target
   
@@ -240,7 +267,8 @@ setMethod("find_cbf_modules", signature("fcoex"), function(fc,
   
   if (!is_parallel) {
     pb_findclusters <- progress_bar$new(total = length(SU_genes),
-                                        format =   "[:bar] :percent eta: :eta")
+                                        format =   "[:bar] :percent eta: 
+                                        :eta")
     # this can surely be improved for speed.
     for (i in SU_genes) {
       pb_findclusters$tick()
@@ -260,9 +288,11 @@ setMethod("find_cbf_modules", signature("fcoex"), function(fc,
   
   #      This was not faster than the for loop! ######
   #
-  #      get_correlates <- function(i, su_i_j_matrix, discretized_exprs, exprs_small){
+  #      get_correlates <- function(i, su_i_j_matrix, discretized_exprs, 
+  #   exprs_small){
   #    gene_i <- as.factor(discretized_exprs[i, ])
-  #     gene_i_correlates <- FCBF::get_su(x = exprs_small, y = as.factor(exprs_small[i, ]))
+  #     gene_i_correlates <- FCBF::get_su(x = exprs_small, 
+  #    y = as.factor(exprs_small[i, ]))
   #     gene_i_correlates$gene <- gsub('\\.', '-',rownames(gene_i_correlates))
   #   gene_i_correlates <- gene_i_correlates[match(su_i_j_matrix$genes,gene_i_correlates$gene),]
   #     colnames(gene_i_correlates)[1] <- i
@@ -350,8 +380,8 @@ setMethod('nmodules', signature('fcoex'),
 #' Get the number of genes in modules in a fcoex object
 #'
 #' @param fc Object of class \code{fcoex}
-#' @param module Default is NULL. If a character string designating a module is
-#' given, the number of genes in that module is returned instead.
+#' @param module Default is NULL. If a character string designating a 
+#' module is#' given, the number of genes in that module is returned instead.
 #' @examples 
 #' data("fc")
 #' mod_gene_num(fc)
@@ -463,7 +493,8 @@ setMethod('module_genes', signature(fc = 'fcoex'),
 setMethod('show', signature(object = 'fcoex'),
           function(object) {
             cat("fcoex Object\n")
-            cat("- Number of modules:", suppressWarnings(nmodules(object)), "\n")
+            cat("- Number of modules:", suppressWarnings(nmodules(object)), 
+                "\n")
             cat("- Module headers: \n")
             if (length(object@module_list) == 0) {
               cat("null\n")
@@ -518,7 +549,8 @@ module_to_gmt <- function(fc, directory = "./Tables") {
       module_names[order(nchar(module_names), module_names)]
     
     gmt_df  <-
-      as.data.frame(matrix("", ncol = max(n_genes), nrow = length(n_genes)), stringsAsFactors = FALSE)
+      as.data.frame(matrix("", ncol = max(n_genes), nrow = length(n_genes)), 
+                    stringsAsFactors = FALSE)
     
     rownames(gmt_df) <- module_names
     
@@ -727,14 +759,15 @@ setMethod('mod_ora', signature('fcoex'),
 #'
 #' @param fc Object of class \code{fcoex}
 #'
-#' @details This function returns the results of the \code{mod_ora} function on the
-#' \code{fcoex} object. The ID column corresponds to pathways in the gmt file for which
-#' genes in the modules were enriched. The Count column shows the number of genes in the
-#' module that are enriched for each pathway. The GeneRatio column shows the proportion of
-#' genes in the module enriched for a given pathway out of all the genes in the module
-#' enriched for any given pathway. The BgRatio column shows the proportion of genes in a
-#' given pathway out of all the genes in the gmt file. For more details, please refer to
-#' the \code{clusterProfiler} package documentation.
+#' @details This function returns the results of the \code{mod_ora} function 
+#' on the \code{fcoex} object. The ID column corresponds to pathways in 
+#' the gmt file for which  genes in the modules were enriched. The Count 
+#' column shows the number of genes in the module that are enriched for each 
+#' pathway. The GeneRatio column shows the proportion of  genes in the module
+#' enriched for a given pathway out of all the genes in the module enriched 
+#' for any given pathway. The BgRatio column shows the proportion of genes 
+#' in a given pathway out of all the genes in the gmt file. For more details,
+#' please refer to the \code{clusterProfiler} package documentation.
 #'
 #' @return Object of class \code{data.frame} with ORA data
 #' @examples 
@@ -764,7 +797,7 @@ setMethod("ora_data", signature("fcoex"),
 #' @param dist_method  method for the dist function. Defaults to "manhattan".
 #' @param k desired number of clustes. Defaults to 2.
 #' @return Object of class \code{data.frame} with new clusters
-#' #' @examples 
+#' @examples 
 #' data("fc")
 #' fc <- recluster(fc)
 #' @export
@@ -791,4 +824,31 @@ setMethod("recluster", signature("fcoex"),
             }
             fc@mod_idents <- mod_idents
             return(fc)
+          })
+
+
+
+#' Retrieves module identities from the recluster function
+#'
+#' @param fc Object of class \code{fcoex}
+#'
+#' @return Named object of class \code{list} with clusterings derived
+#' from the recluster function.
+#' 
+#' @examples 
+#' data("fc")
+#' idents(fc)
+#' @references Guangchuang Yu, Li-Gen Wang, Yanyan Han, Qing-Yu He. clusterProfiler:
+#' an R package for comparing biological themes among gene clusters. OMICS:
+#' A Journal of Integrative Biology. 2012, 16(5):284-287.
+#' @rdname idents
+#' @export
+setGeneric("idents", function(fc) {
+  standardGeneric("idents")
+})
+
+#' @rdname idents
+setMethod("idents", signature("fcoex"),
+          function(fc) {
+            return(fc@mod_idents)
           })

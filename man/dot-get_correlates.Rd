@@ -11,7 +11,8 @@
 
 \item{su_i_j_matrix}{the dataframe with the correlations to be updated}
 
-\item{discretized_exprs}{the dataframe with discretized expression to extract a gene}
+\item{discretized_exprs}{the dataframe with discretized expression 
+to extract a gene}
 
 \item{exprs_small}{the dataframe to after the filtering step}
 }

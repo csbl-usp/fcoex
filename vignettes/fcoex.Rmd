@@ -24,8 +24,8 @@ The goal of fcoex is to provide a simple and intuitive way to generate co-expres
 First of all, we will a already preprocessed single cell dataset from 10XGenomics ( preprocessed according to https://osca.bioconductor.org/a-basic-analysis.html#preprocessing-import-to-r, 14/08/2019). It contains peripheral blood mononuclear cells and the most variable genes.
 
 ```{r}
-library(fcoex, quietly = T)
-library(SingleCellExperiment, quietly = T)
+library(fcoex, quietly = TRUE)
+library(SingleCellExperiment, quietly = TRUE)
 data("mini_pbmc3k")
 mini_pbmc3k
 ```
@@ -113,8 +113,8 @@ fc <- recluster(fc)
 We generated new labels based on each fcoex module. Now we will visualize them using UMAP
 ```{r}
 
-mini_pbmc3k@colData <- cbind(colData(mini_pbmc3k), mod_FCER1G = fc@mod_idents$FCER1G)
-mini_pbmc3k@colData <- cbind(colData(mini_pbmc3k), mod_CD3D = fc@mod_idents$CD3D)
+colData(mini_pbmc3k) <- cbind(colData(mini_pbmc3k), mod_FCER1G = idents(fc)$FCER1G)
+colData(mini_pbmc3k) <- cbind(colData(mini_pbmc3k), mod_CD3D = idents(fc)$CD3D)
 
 library(scater)
 # Let's see the original clusters

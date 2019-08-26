@@ -264,7 +264,7 @@ setMethod("mod_colors", signature("fcoex"),
 #'
 #' @param fc Object of class \code{fcoex}.
 #' @return A plot corresponding to a fcoex analysis
-#' #' @examples 
+#' @examples 
 #' data("fc")
 #' show_net(fc)
 #' @rdname show_net

@@ -15,10 +15,11 @@ show_plot(fc)
 }
 \value{
 A plot corresponding to a fcoex analysis
-#' @examples 
-data("fc")
-show_net(fc)
 }
 \description{
 Retrieve fcoex net plots
+}
+\examples{
+data("fc")
+show_net(fc)
 }

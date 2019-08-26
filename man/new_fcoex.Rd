@@ -9,7 +9,8 @@ new_fcoex(expr = data.frame(), target = vector())
 \arguments{
 \item{target}{Original target classes for the cells (\code{factor}).}
 
-\item{expression}{Normalized gene expression table from single-cells \code{data.frame}.}
+\item{expression}{Normalized gene expression table from single-cells
+\code{data.frame}.}
 }
 \value{
 Object of class \code{fcoex}

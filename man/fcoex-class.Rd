@@ -23,18 +23,25 @@ genes selected for analysis}
 
 \item{\code{module_list}}{\code{list} containing genes in each module.}
 
-\item{\code{adjacency}}{\code{data.frame} containing the adjacency table for the selected genes.}
+\item{\code{adjacency}}{\code{data.frame} containing the adjacency table for 
+the selected genes.}
 
 \item{\code{interaction_plot}}{list of ggplot graphs with module gene interactions.}
 
-\item{\code{new_clusters}}{\code{list} containing gene interactions present in modules.}
+\item{\code{new_clusters}}{\code{list} containing gene interactions present in 
+modules.}
 
-\item{\code{mod_colors}}{character \code{vector} containing colors associated with each network module.}
+\item{\code{mod_colors}}{character \code{vector} containing colors associated with 
+each network module.}
 
 \item{\code{ora}}{Over-representation analysis results \code{data.frame}.}
 
-\item{\code{barplot_ora}}{list of ggplot graphs with over-representation analysis results per module.}
+\item{\code{barplot_ora}}{list of ggplot graphs with over-representation analysis 
+results per module.}
 
-\item{\code{mod_idents}}{Identities of cells based on each co-expression module. Determined by the "recluster" method}
+\item{\code{mod_idents}}{Identities of cells based on each co-expression module. 
+Determined by the "recluster" method}
+
+\item{\code{parameters}}{\code{list} containing analysis parameters.}
 }}
 

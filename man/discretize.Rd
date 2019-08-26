@@ -18,30 +18,40 @@ discretize(fc, ...)
 
 \item{number_of_bins}{Number of equal-width bins for discretization.
 Note: it is a binary discretization, with the
-first bin becoming one class ('low') and the other bins, another class ('high').
-Defaults to 4.}
+first bin becoming one class ('low') and the other bins, another class 
+('high').#' Defaults to 4.}
 
-\item{method}{Method applied to all genes for discretization. Methods available: "varying_width"
+\item{method}{Method applied to all genes for discretization. 
+Methods available: "varying_width"
  (Binarization modulated by the number_of_bins param),
 "mean" (Split in ON/OFF by each gene mean expression),
 "median" (Split in ON/OFF by each gene median expression),
-"mean_sd"(Split in low/medium/high by each assigning "medium" to the interval between mean +- standard_deviation.
-Modulated by the alpha param, which enlarges (>1) or shrinks (<1) the "medium" interval. ),
+"mean_sd"(Split in low/medium/high by each assigning "medium" to 
+the interval between mean +- standard_deviation.
+Modulated by the alpha param, which enlarges (>1) or shrinks (<1) the 
+"medium" interval. ),
 ),
-"kmeans"(Split in different groups by the kmeans algorithm. As many groups as specified by the centers param) and
-"min_max_\%" (Similat to the "varying width", a binarization threshold in a % of the min-max range is set. (minmax\% param)),
-"GMM" (A Gaussian Mixture Model as implemented by the package mclust, trying to fit 2:5 Gaussians). Default is "varying_width"}
+"kmeans"(Split in different groups by the kmeans algorithm. As many 
+groups as specified by the centers param) and
+"min_max_\%" (Similat to the "varying width", a binarization threshold 
+in a % of the min-max range is set. (minmax\% param)),
+"GMM" (A Gaussian Mixture Model as implemented by the package mclust, 
+trying to fit 2:5 Gaussians). Default is "varying_width"}
 
-\item{alpha}{Modulator for the "mean_sd" method.Enlarges (>1) or shrinks (<1) the "medium" interval. Defaults to 1.}
+\item{alpha}{Modulator for the "mean_sd" method.Enlarges (>1) or 
+shrinks (<1) the "medium" interval. Defaults to 1.}
 
 \item{centers}{Modulator for the "kmeans" method. Defaults to 3.}
 
-\item{min_max_cutoff}{<- Modulator for the "min_max_\%" method. Defaults to 0.25.}
+\item{min_max_cutoff}{<- Modulator for the "min_max_\%" method. 
+Defaults to 0.25.}
 
-\item{show_pb}{Enables a progress bar for the discretization. Defaults to TRUE.}
+\item{show_pb}{Enables a progress bar for the discretization. 
+Defaults to TRUE.}
 }
 \value{
-A data frame with the discretized features in the same order as previously
+A data frame with the discretized features in the same 
+order as previously
 }
 \description{
 Set the discretized expression attribute
