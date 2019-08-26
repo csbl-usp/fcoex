@@ -12,6 +12,7 @@ Suggests:
     BiocManager,
     TENxPBMCData,
     scater,
+    gridExtra,
     scran,
     knitr
 License: GPL-3

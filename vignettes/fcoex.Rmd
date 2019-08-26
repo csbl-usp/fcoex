@@ -1,5 +1,8 @@
 ---
-title: 'fcoex: Co-expression for single-cell data'
+title: 'fcoex: co-expression for single-cell data'
+author:
+- name: Tiago Lubiana
+  affiliation: Computational Systems Biology Laboratory, University of São Paulo, Brazil
 output:
   html_document:
     toc: yes
@@ -8,9 +11,9 @@ output:
   prettydoc::html_pretty:
     highlight: github
     theme: cayman
-    toc: yes
-  vignette: > 
-  %\VignetteIndexEntry{CEMiTool: Co-expression Modules Identification Tool}
+package: fcoex
+vignette: > 
+  %\VignetteIndexEntry{fcoex: co-expression for single-cell data}
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---
@@ -23,7 +26,7 @@ The goal of fcoex is to provide a simple and intuitive way to generate co-expres
 
 First of all, we will a already preprocessed single cell dataset from 10XGenomics ( preprocessed according to https://osca.bioconductor.org/a-basic-analysis.html#preprocessing-import-to-r, 14/08/2019). It contains peripheral blood mononuclear cells and the most variable genes.
 
-```{r}
+```{r  Loading datasets, message=FALSE  }
 library(fcoex, quietly = TRUE)
 library(SingleCellExperiment, quietly = TRUE)
 data("mini_pbmc3k")
@@ -35,7 +38,7 @@ The labels were obtained by louvain clustering on a graph build from nearest nei
 
 The fcoex object is created from 2 different pieces: a previously normalized expression table (genes in rows) and a target factor with classes for the cells. 
 
-```{r}
+```{r Creating fcoex object, message=FALSE }
 target <- colData(mini_pbmc3k)$clusters
 exprs <- as.data.frame(assay(mini_pbmc3k, 'logcounts'))
 
@@ -49,7 +52,7 @@ For each gene, the maximum and minimum values are stored.
 This range is divided in n bins of equal width (parameter to be set).
 The first bin is assigned to the class "low" and all the others to the class "high".
 
-```{r}
+```{r Discretizing dataset, message=FALSE }
 fc <- discretize(fc, number_of_bins = 8)
 ```
 
@@ -65,34 +68,42 @@ After the discretization, we proceed to constructing a network and extracting mo
 
 You can choose either to have a non-parallel processing, with a progress bar, or a faster parallel processing without progress bar. Up to you. 
 
-```{r}
+```{r Finding cbf modules, message=FALSE }
 fc <- find_cbf_modules(fc,n_genes = 200, verbose = FALSE, is_parallel = TRUE)
 ```
 
 
 There are two functions that do the same: both get_nets and plot_interactions take the modules and plot networks. You can pick the name you like better. These visualizations were heavily inspired by the CEMiTool package, as much of the code in fcoex.
 
-```{r}
+We will take a look at the first two networks 
+
+```{r Plotting module networks, message=FALSE }
 fc <- get_nets(fc)
+
+# Example plot 
+print(show_net(fc)[1])
+print(show_net(fc)[2])
 ```
 
 To save the plots, you can run the save plots function, which will create a "./Plots" directory and store plots there.
-```{r}
+```{r Saving plots, message=FALSE, results='hide'}
 save_plots(name = "fcoex_vignette", fc)
 ```
 
 You can also run  over-representation analysis to see if the modules correspond to any known biological pathway. For this, we will use the reactome groups available in the CEMiTool package:
 
-```{r}
+```{r Running ORA analysis, message=FALSE}
 gmt_fname <- system.file("extdata", "pathways.gmt", package = "CEMiTool")
 gmt_in <- read_gmt(gmt_fname)
 fc <- mod_ora(fc, gmt_in)
 fc <- plot_ora(fc)
+print(show_ora(fc)[1])
+print(show_ora(fc)[2])
 ```
 
 Now we can save the plots again. Note that we have to set the force parameter  equal to TRUE now, as the "./Plots" directory was already created in the previous step. 
 
-```{r}
+```{r Saving plots again, message=FALSE, results='hide'}
 save_plots(name = "fcoex_vignette", fc, force = TRUE)
 ```
 
@@ -104,14 +115,14 @@ We will use the module assignments to subdivide the cells in populations of inte
 
 
 
-```{r}
+```{r Reclustering}
 
 fc <- recluster(fc)
 
 ```
 
 We generated new labels based on each fcoex module. Now we will visualize them using UMAP
-```{r}
+```{r Visualizing}
 
 colData(mini_pbmc3k) <- cbind(colData(mini_pbmc3k), mod_FCER1G = idents(fc)$FCER1G)
 colData(mini_pbmc3k) <- cbind(colData(mini_pbmc3k), mod_CD3D = idents(fc)$CD3D)
@@ -120,12 +131,14 @@ library(scater)
 # Let's see the original clusters
 plotReducedDim(mini_pbmc3k, dimred="UMAP", colour_by="clusters")
 
+library(gridExtra)
 # And let's see the population represented in the modules CD3D and FCER1G.
 # Notably, the patterns are largely influenced by the patterns of header genes
-plotReducedDim(mini_pbmc3k, dimred="UMAP", colour_by="mod_FCER1G")
-plotReducedDim(mini_pbmc3k, dimred="UMAP", colour_by="FCER1G")
-plotReducedDim(mini_pbmc3k, dimred="UMAP", colour_by="mod_CD3D")
-plotReducedDim(mini_pbmc3k, dimred="UMAP", colour_by="CD3D")
+p1 <- plotReducedDim(mini_pbmc3k, dimred="UMAP", colour_by="mod_FCER1G")
+p2 <- plotReducedDim(mini_pbmc3k, dimred="UMAP", colour_by="FCER1G")
+p3 <- plotReducedDim(mini_pbmc3k, dimred="UMAP", colour_by="mod_CD3D")
+p4 <- plotReducedDim(mini_pbmc3k, dimred="UMAP", colour_by="CD3D")
 
+grid.arrange(p1, p2, p3, p4, nrow=2)
 ```
 

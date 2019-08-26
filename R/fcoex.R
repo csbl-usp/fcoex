@@ -20,7 +20,7 @@ setOldClass('gtable')
 #' @slot module_list \code{list} containing genes in each module.
 #' @slot adjacency \code{data.frame} containing the adjacency table for 
 #' the selected genes.
-#' @slot interaction_plot list of ggplot graphs with module gene interactions.
+#' @slot coex_network_plot list of ggplot graphs with module gene interactions.
 #' @slot new_clusters \code{list} containing gene interactions present in 
 #' modules.
 #' @slot mod_colors character \code{vector} containing colors associated with 
@@ -40,7 +40,7 @@ setClass(
     selected_genes = 'vector',
     module_list = 'list',
     adjacency = 'list',
-    interaction_plot = 'list',
+    coex_network_plot = 'list',
     new_clusters = 'list',
     mod_colors = 'character',
     parameters = 'list',

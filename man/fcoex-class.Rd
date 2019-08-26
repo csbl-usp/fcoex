@@ -26,7 +26,7 @@ genes selected for analysis}
 \item{\code{adjacency}}{\code{data.frame} containing the adjacency table for 
 the selected genes.}
 
-\item{\code{interaction_plot}}{list of ggplot graphs with module gene interactions.}
+\item{\code{coex_network_plot}}{list of ggplot graphs with module gene interactions.}
 
 \item{\code{new_clusters}}{\code{list} containing gene interactions present in 
 modules.}

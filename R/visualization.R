@@ -66,7 +66,7 @@ setMethod('plot_interactions', signature('fcoex'),
               }
             })
             names(res) <- mod_names
-            fc@interaction_plot <- res[mod_names]
+            fc@coex_network_plot <- res[mod_names]
             return(fc)
           })
 
@@ -126,7 +126,7 @@ setMethod('get_nets', signature('fcoex'),
               }
             })
             names(res) <- mod_names
-            fc@interaction_plot <- res[mod_names]
+            fc@coex_network_plot <- res[mod_names]
             return(fc)
           })
 
@@ -269,14 +269,14 @@ setMethod("mod_colors", signature("fcoex"),
 #' show_net(fc)
 #' @rdname show_net
 #' @export
-setGeneric('show_plot', function(fc) {
-  standardGeneric('show_plot')
+setGeneric('show_net', function(fc) {
+  standardGeneric('show_net')
 })
 
 #' @rdname show_net
-setMethod('show_plot', signature('fcoex'),
+setMethod('show_net', signature('fcoex'),
           function(fc) {
-            return(fc@interaction_plot)
+            return(fc@coex_network_plot)
             #       }
           })
 
@@ -325,6 +325,27 @@ setMethod('plot_ora', signature('fcoex'),
             })
             fc@barplot_ora <- res
             return(fc)
+          })
+
+
+#' Retrieve fcoex ora plots
+#'
+#' @param fc Object of class \code{fcoex}.
+#' @return A plot corresponding to a fcoex analysis
+#' @examples 
+#' data("fc")
+#' show_ora(fc)
+#' @rdname show_ora
+#' @export
+setGeneric('show_ora', function(fc) {
+  standardGeneric('show_ora')
+})
+
+#' @rdname show_ora
+setMethod('show_ora', signature('fcoex'),
+          function(fc) {
+            return(fc@barplot_ora)
+            #       }
           })
 
 #' ORA visualization for one module
@@ -452,7 +473,7 @@ setMethod('save_plots', signature('fcoex'),
             } else{
               dir.create(directory, recursive = TRUE)
             }
-            plots <- list(fc@interaction_plot, fc@barplot_ora)
+            plots <- list(fc@coex_network_plot, fc@barplot_ora)
             all_plots <- c("interaction", "ora")
             names(plots) <- all_plots
             plots <- Filter(function(x)
