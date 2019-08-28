@@ -87,7 +87,7 @@ print(show_net(fc)[2])
 
 To save the plots, you can run the save plots function, which will create a "./Plots" directory and store plots there.
 ```{r Saving plots, message=FALSE, results='hide'}
-save_plots(name = "fcoex_vignette", fc)
+save_plots(name = "fcoex_vignette", fc,force = TRUE)
 ```
 
 You can also run  over-representation analysis to see if the modules correspond to any known biological pathway. For this, we will use the reactome groups available in the CEMiTool package:
@@ -113,9 +113,7 @@ There is now a folder with the correlations, to explore the data.
 
 We will use the module assignments to subdivide the cells in populations of interest. This is a way to explore the data and look for possible novel groupings ignored in the previous clustering step.
 
-
-
-```{r Reclustering}
+```{r Reclustering, , message=FALSE}
 
 fc <- recluster(fc)
 
