@@ -19,7 +19,8 @@ NULL
 #' @param n number of nodes to label
 #' @param min_elements Minimum number of elements in a module for it to be plotted. Defaults to 5.
 #' @param ... Optional parameters.
-#' @examples 
+#' @examples
+#' library(SingleCellExperiment)  
 #' data("mini_pbmc3k")
 #' targets <- colData(mini_pbmc3k)$clusters
 #' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
@@ -80,6 +81,7 @@ setMethod('plot_interactions', signature('fcoex'),
 #' @param min_elements Minimum number of elements in a module for it to be plotted. Defaults to 5.
 #' @param ... Optional parameters.
 #' @examples 
+#' library(SingleCellExperiment) 
 #' data("mini_pbmc3k")
 #' targets <- colData(mini_pbmc3k)$clusters
 #' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))

@@ -1,4 +1,4 @@
----
+#' ---
 title: 'fcoex: co-expression for single-cell data'
 author:
 - name: Tiago Lubiana
@@ -69,7 +69,7 @@ After the discretization, we proceed to constructing a network and extracting mo
 You can choose either to have a non-parallel processing, with a progress bar, or a faster parallel processing without progress bar. Up to you. 
 
 ```{r Finding cbf modules, message=FALSE }
-fc <- find_cbf_modules(fc,n_genes = 200, verbose = FALSE, is_parallel = TRUE)
+fc <- find_cbf_modules(fc,n_genes = 200, verbose = FALSE, is_parallel = FALSE)
 ```
 
 

@@ -65,6 +65,7 @@ setMethod("initialize", signature = "fcoex",
 #' @return Object of class \code{fcoex}
 #' @examples
 #' # Create new fcoex object
+#' library(SingleCellExperiment)
 #' data("mini_pbmc3k")
 #' targets <- colData(mini_pbmc3k)$clusters
 #' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
@@ -113,6 +114,7 @@ new_fcoex <- function(expr = data.frame(), target = vector()) {
 #' @return A data frame with the discretized features in the same 
 #' order as previously
 #' @examples 
+#' library(SingleCellExperiment) 
 #' data("mini_pbmc3k")
 #' targets <- colData(mini_pbmc3k)$clusters
 #' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
@@ -202,6 +204,7 @@ setMethod("discretize", signature("fcoex"),
 #' Caution: it overrides the thresh parameter altogether.
 #' 
 #' @examples 
+#' library(SingleCellExperiment) 
 #' data("mini_pbmc3k")
 #' targets <- colData(mini_pbmc3k)$clusters
 #' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))

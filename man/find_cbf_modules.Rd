@@ -46,6 +46,7 @@ and
 correlated to a class.
 }
 \examples{
+library(SingleCellExperiment) 
 data("mini_pbmc3k")
 targets <- colData(mini_pbmc3k)$clusters
 exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))

@@ -26,6 +26,7 @@ Object of class \code{fcoex} with profile plots
 Creates a graph based on interactions provided
 }
 \examples{
+library(SingleCellExperiment)  
 data("mini_pbmc3k")
 targets <- colData(mini_pbmc3k)$clusters
 exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))

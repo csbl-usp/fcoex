@@ -27,6 +27,7 @@ Creates network visualizations based on the adjacency matrix
 obtained with the find_cbf_modules method
 }
 \examples{
+library(SingleCellExperiment) 
 data("mini_pbmc3k")
 targets <- colData(mini_pbmc3k)$clusters
 exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
