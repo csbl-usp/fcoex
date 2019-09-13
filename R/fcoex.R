@@ -799,13 +799,17 @@ setMethod("ora_data", signature("fcoex"),
 #' @param hclust_method method for the hclust function. Defaults to "ward.D2".
 #' @param dist_method  method for the dist function. Defaults to "manhattan".
 #' @param k desired number of clustes. Defaults to 2.
+#' @param verbose Adds verbosity, defaults to TRUE.
 #' @return Object of class \code{data.frame} with new clusters
 #' @examples 
 #' data("fc")
 #' fc <- recluster(fc)
 #' @export
 #' @rdname recluster
-setGeneric("recluster", function(fc, ...) {
+setGeneric("recluster", function(fc, hclust_method = "ward.D2",
+                                 dist_method = 'manhattan',
+                                 k = 2,
+                                 verbose = TRUE) {
   standardGeneric("recluster")
 })
 #' @rdname recluster
@@ -813,10 +817,17 @@ setMethod("recluster", signature("fcoex"),
           function(fc,
                    hclust_method = "ward.D2",
                    dist_method = 'manhattan',
-                   k = 2) {
+                   k = 2,
+                   verbose = TRUE) {
             mod_idents <- list()
+            if (verbose){
+              message("Detecting clusters for the following modules: ")   
+            }
+
             for (i in names(fc@module_list)) {
-              print(i)
+              if (verbose){
+                message(print(i))   
+              }
               expression_table <-
                 fc@expression[fc@module_list[[i]], ]
               d <-

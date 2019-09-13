@@ -6,10 +6,11 @@
 \alias{recluster,fcoex-method}
 \title{Recluster cells based on fcoex module composition}
 \usage{
-recluster(fc, ...)
+recluster(fc, hclust_method = "ward.D2", dist_method = "manhattan",
+  k = 2, verbose = TRUE)
 
 \S4method{recluster}{fcoex}(fc, hclust_method = "ward.D2",
-  dist_method = "manhattan", k = 2)
+  dist_method = "manhattan", k = 2, verbose = TRUE)
 }
 \arguments{
 \item{fc}{Object of class \code{fcoex}}
@@ -19,6 +20,8 @@ recluster(fc, ...)
 \item{dist_method}{method for the dist function. Defaults to "manhattan".}
 
 \item{k}{desired number of clustes. Defaults to 2.}
+
+\item{verbose}{Adds verbosity, defaults to TRUE.}
 }
 \value{
 Object of class \code{data.frame} with new clusters
