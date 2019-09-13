@@ -820,6 +820,7 @@ setMethod("recluster", signature("fcoex"),
                    k = 2,
                    verbose = TRUE) {
             mod_idents <- list()
+  
             if (verbose){
               message("Detecting clusters for the following modules: ")   
             }
@@ -833,8 +834,25 @@ setMethod("recluster", signature("fcoex"),
               d <-
                 dist(t(as.matrix(expression_table)), method = dist_method)
               hc <- hclust(d, method = hclust_method)
+              ifelse(which(itable == max(itable[,2])) == 3 , 1, 2)
               idents <- as.factor(cutree(hc, k))
-              mod_idents[[i]] <- idents
+
+              if (k == 2){
+               mean_1 <-  mean(as.numeric(fc@expression[i,][idents==1]))
+               mean_2 <-  mean(as.numeric(fc@expression[i,][idents==2]))
+               if (mean_1 > mean_2){
+                 # The first cluster will be the header positive cluster
+                 first = "HP"
+                 second = "HN"
+               } else {
+                 # The first cluster will be the header negative cluster
+                 first = "HN"
+                 second = "HP"
+                 }
+              idents <- ifelse(idents == 1, first, second)
+                
+              }
+              mod_idents[[i]] <- as.factor(idents)
             }
             fc@mod_idents <- mod_idents
             return(fc)
