@@ -1,6 +1,6 @@
 Package: fcoex
 Title: FCBF-based Co-Expression Networks for Single Cells 
-Version: 0.99.1
+Version: 0.99.2
 Authors@R: c(person("Tiago", "Lubiana", email = "tiago.lubiana.alves@usp.br",
   role = c("aut", "cre")), person("Helder", "Nakaya", email = "hnkaya@usp.br",
   role = c("aut","ths")))

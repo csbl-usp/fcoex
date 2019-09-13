@@ -43,8 +43,9 @@ The labels were obtained by louvain clustering on a graph build from nearest nei
 The fcoex object is created from 2 different pieces: a previously normalized expression table (genes in rows) and a target factor with classes for the cells. 
 
 ```{r Creating fcoex object, message=FALSE }
-target <- colData(mini_pbmc3k)$clusters
-exprs <- as.data.frame(assay(mini_pbmc3k, 'logcounts'))
+target <- SingleCellExperiment::colData(mini_pbmc3k)
+target <- target$clusters
+exprs <- as.data.frame(aSingleCellExperiment::ssay(mini_pbmc3k, 'logcounts'))
 
 fc <- new_fcoex(data.frame(exprs),target)
 
@@ -135,7 +136,7 @@ The stratification and exploration of different clustering points of view is
 one of the core
 ```{r Visualizing}
 
-colData(mini_pbmc3k) <- cbind(colData(mini_pbmc3k), mod_HLA-DRB1 = idents(fc)$HLA-DRB1)
+colData(mini_pbmc3k) <- cbind(colData(mini_pbmc3k), `mod_HLA-DRB1` = idents(fc)$`HLA-DRB1`)
 colData(mini_pbmc3k) <- cbind(colData(mini_pbmc3k), mod_CD79A = idents(fc)$CD79A)
 
 library(scater)
