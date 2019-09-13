@@ -834,7 +834,6 @@ setMethod("recluster", signature("fcoex"),
               d <-
                 dist(t(as.matrix(expression_table)), method = dist_method)
               hc <- hclust(d, method = hclust_method)
-              ifelse(which(itable == max(itable[,2])) == 3 , 1, 2)
               idents <- as.factor(cutree(hc, k))
 
               if (k == 2){
