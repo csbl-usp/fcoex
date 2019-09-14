@@ -18,7 +18,7 @@ vignette: >
   \usepackage[utf8]{inputenc}
 ---
 
-# fcoex: Introduction and basic pipeline
+# Introduction and basic pipeline
 
 The goal of fcoex is to provide a simple and intuitive way to generate co-expression nets and modules for single cell data. It is based in 3 steps:
 
@@ -45,7 +45,7 @@ The fcoex object is created from 2 different pieces: a previously normalized exp
 ```{r Creating fcoex object, message=FALSE }
 target <- SingleCellExperiment::colData(mini_pbmc3k)
 target <- target$clusters
-exprs <- as.data.frame(aSingleCellExperiment::ssay(mini_pbmc3k, 'logcounts'))
+exprs <- as.data.frame(SummarizedExperiment::assay(mini_pbmc3k, 'logcounts'))
 
 fc <- new_fcoex(data.frame(exprs),target)
 
@@ -102,10 +102,6 @@ gmt_fname <- system.file("extdata", "pathways.gmt", package = "CEMiTool")
 gmt_in <- read_gmt(gmt_fname)
 fc <- mod_ora(fc, gmt_in)
 fc <- plot_ora(fc)
-
-# Taking a look at two ora representations: 
-show_ora(fc)[["CD79A"]]$pl
-show_ora(fc)[["HLA-DRB1"]]$pl
 ```
 
 Now we can save the plots again. Note that we have to set the force parameter  equal to TRUE now, as the "./Plots" directory was already created in the previous step. 
