@@ -1,8 +1,10 @@
-#' @importFrom grDevices rainbow
-#' @importFrom utils write.table
+#' @importFrom grDevices rainbow dev.off pdf
+#' @importFrom utils write.table head
+#' @importFrom stats cutree dist hclust
 #' @importFrom methods new 'slot<-' show
 #' @import SingleCellExperiment
 #' @import dplyr
+
 
 setOldClass('gg')
 setOldClass('ggplot')
@@ -72,8 +74,8 @@ setMethod("initialize", signature = "fcoex",
 #' fc <- new_fcoex(exprs, targets)
 
 #' @export
-new_fcoex <- function(expr = data.frame(), target = vector()) {
-  fc <- new("fcoex", expression = expr, target = target)
+new_fcoex <- function(expression = data.frame(), target = vector()) {
+  fc <- new("fcoex", expression = expression, target = target)
   msg <- "Created new fcoex object."
   message(msg)
   return(fc)
@@ -123,7 +125,12 @@ new_fcoex <- function(expr = data.frame(), target = vector()) {
 #' @import FCBF
 #' @rdname discretize
 #' @export
-setGeneric("discretize", function(fc, ...) {
+setGeneric("discretize", function(fc, number_of_bins = 4,
+                                  method = "varying_width",
+                                  alpha = 1,
+                                  centers = 3,
+                                  min_max_cutoff = 0.25,
+                                  show_pb = TRUE) {
   standardGeneric("discretize")
 })
 
@@ -387,7 +394,7 @@ setMethod('nmodules', signature('fcoex'),
 #' module is#' given, the number of genes in that module is returned instead.
 #' @examples 
 #' data("fc")
-#' mod_gene_num(fc)
+#' mod_gene_num(fc, module = "TYROBP")
 #' @return The number of genes in module(s)
 #'
 #' @rdname mod_gene_num
@@ -408,8 +415,13 @@ setMethod('mod_gene_num', signature(fc = 'fcoex'),
             }
             if (!is.null(module)) {
               mod_genes <- fc@module_list[[module]]
+              return(mod_genes)
+            } 
+            
+            if (is.null(module)) {
+              stop("No modules selected!")
             }
-            return(mod_genes)
+
           })
 
 
@@ -502,7 +514,7 @@ setMethod('show', signature(object = 'fcoex'),
             if (length(object@module_list) == 0) {
               cat("null\n")
             } else {
-              cat(names(fc@module_list), sep = ", ")
+              cat(names(object@module_list), sep = ", ")
               cat('\n')
             }
             cat("- Expression file: ")
@@ -525,181 +537,6 @@ setMethod('show', signature(object = 'fcoex'),
               }
             }
           })
-
-#' Transform module genes list to a gmt file
-#'
-#' @keywords internal
-#'
-#' @param fc A fcoex object.
-#' @examples 
-#' data("fc")
-#' module_to_gmt(fc)
-#' @return A .gmt file containing module genes in each row
-#'
-module_to_gmt <- function(fc, directory = "./Tables") {
-  if (length(fc@module_list) == 0) {
-    stop("No modules in fcoex object! Did you run find_modules()?")
-  } else{
-    gene_modules <- fc@module
-    n_genes <-
-      as.numeric(table(gene_modules$modules[gene_modules$modules != "Not.Correlated"]))
-    n_genes <- n_genes[seq_len((length(n_genes)))]
-    module_names <-
-      as.character(unique(gene_modules[, "modules"]))
-    module_names <-
-      module_names[module_names != "Not.Correlated"]
-    module_names <-
-      module_names[order(nchar(module_names), module_names)]
-    
-    gmt_df  <-
-      as.data.frame(matrix("", ncol = max(n_genes), nrow = length(n_genes)), 
-                    stringsAsFactors = FALSE)
-    
-    rownames(gmt_df) <- module_names
-    
-    for (i in seq_len(length(module_names))) {
-      mod <- module_names[i]
-      selected <-
-        gene_modules[gene_modules$modules == mod, "genes"]
-      gmt_df[mod, seq_len(length((selected)))] <- selected
-    }
-    
-    gmt_df <- as.data.frame(cbind(module_names, gmt_df))
-    write.table(
-      gmt_df,
-      file.path(directory, "modules_genes.gmt"),
-      sep = "\t",
-      col.names = FALSE,
-      quote = FALSE
-    )
-  }
-}
-
-
-#' Save the fcoex object in files
-#'
-#' @param fc Object of class \code{fcoex}
-#' @param directory a directory
-#' @param force if the directory exists the execution will not stop
-#' @param ... Optional parameters
-#' @return A directory containing fcoex results in files.
-#' @examples
-#' data("fc")
-#' write_files(fc, directory=".", force=TRUE)
-#'
-#' @rdname write_files
-#' @export
-setGeneric('write_files', function(fc, ...) {
-  standardGeneric('write_files')
-})
-
-#' @rdname write_files
-setMethod('write_files', signature(fc = 'fcoex'),
-          function(fc,
-                   directory = "./Tables",
-                   force = FALSE) {
-            if (dir.exists(directory)) {
-              if (!force) {
-                stop("Stopping analysis: ",
-                     directory,
-                     " already exists! Use force=TRUE to overwrite.")
-              }
-            } else {
-              dir.create(directory, recursive = TRUE)
-            }
-            
-            if (nrow(fc@module) > 0) {
-              write.table(
-                fc@module,
-                file.path(directory, "module.tsv"),
-                sep = "\t",
-                row.names = FALSE
-              )
-              
-              mean_summary <- mod_summary(fc, "mean")
-              write.table(
-                mean_summary,
-                file.path(directory, "summary_mean.tsv"),
-                sep = "\t",
-                row.names = FALSE
-              )
-              
-              median_summary <- mod_summary(fc, "median")
-              write.table(
-                median_summary,
-                file.path(directory, "summary_median.tsv"),
-                sep = "\t",
-                row.names = FALSE
-              )
-              
-              eg_summary <- mod_summary(fc, "eigengene")
-              write.table(
-                eg_summary,
-                file.path(directory, "summary_eigengene.tsv"),
-                sep = "\t",
-                row.names = FALSE
-              )
-              
-              module_to_gmt(fc, directory = directory)
-            }
-            
-            expr_f <- expr_data(
-              fc,
-              filter = fc@parameters$filter,
-              apply_vst = fc@parameters$apply_vst
-            )
-            selected <- select_genes(expr_f)
-            writeLines(selected, file.path(directory, "selected_genes.txt"))
-            
-            if (length(fc@enrichment) > 0) {
-              for (stat in names(fc@enrichment)) {
-                write.table(
-                  fc@enrichment[[stat]],
-                  file.path(directory, paste0("enrichment_", stat, ".tsv")),
-                  sep = "\t",
-                  row.names = FALSE
-                )
-              }
-            }
-            
-            if (nrow(fc@ora) > 0) {
-              write.table(fc@ora,
-                          file.path(directory, "ora.tsv"),
-                          sep = "\t",
-                          row.names = FALSE)
-            }
-            
-            if (length(fc@interactions) > 0) {
-              mod_ints <- lapply(names(fc@interactions), function(x) {
-                mod_int <- igraph::get.edgelist(fc@interactions[[x]])
-                if (nrow(mod_int) > 0) {
-                  cbind(x, mod_int)
-                }
-              })
-              int_df <- do.call("rbind", mod_ints)
-              colnames(int_df) <- c("Module", "Gene1", "Gene2")
-              write.table(
-                int_df,
-                file.path(directory, "interactions.tsv"),
-                sep = "\t",
-                row.names = FALSE
-              )
-            }
-            
-            if (length(fc@parameters) > 0) {
-              params <- fc@parameters
-              param_df <-
-                data.frame(Parameter = names(params), Value = as.character(params))
-              write.table(
-                param_df,
-                file.path(directory, "parameters.tsv"),
-                sep = "\t",
-                row.names = FALSE
-              )
-            }
-          })
-
-
 
 #' # Run module overrepresentation analysis
 #'

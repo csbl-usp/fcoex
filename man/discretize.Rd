@@ -7,7 +7,8 @@
 \title{Set the discretized expression attribute
 Uses the discretize_exprs function of the FCBF package}
 \usage{
-discretize(fc, ...)
+discretize(fc, number_of_bins = 4, method = "varying_width",
+  alpha = 1, centers = 3, min_max_cutoff = 0.25, show_pb = TRUE)
 
 \S4method{discretize}{fcoex}(fc, number_of_bins = 4,
   method = "varying_width", alpha = 1, centers = 3,

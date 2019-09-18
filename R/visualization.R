@@ -140,6 +140,7 @@ setMethod('get_nets', signature('fcoex'),
 #' data("fc")
 #' mod_colors(fc)
 #' @rdname mod_colors
+#' @export
 setGeneric("mod_colors", function(fc) {
   standardGeneric("mod_colors")
 })
@@ -174,7 +175,10 @@ setMethod("mod_colors", signature("fcoex"),
 #'
 #' Creates a graph based on interactions provided
 #'
-#' @param fc Object of class \code{fcoex}.
+#' @param adjacency_matrix An adajcency matrix from the \code{fcoex} object.
+#' @param n Number of genes to be shown
+#' @param color Color of the module to be plotted
+#' @param name Name of the module to be plotted
 #' @param ... Optional parameters.
 #' @return  A ggplot2 ('gg') object
 .plot_one_interaction <- function(adjacency_matrix, n, color, name) {

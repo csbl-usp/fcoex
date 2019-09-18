@@ -43,9 +43,9 @@ The labels were obtained by louvain clustering on a graph build from nearest nei
 The fcoex object is created from 2 different pieces: a previously normalized expression table (genes in rows) and a target factor with classes for the cells. 
 
 ```{r Creating fcoex object, message=FALSE }
-target <- SingleCellExperiment::colData(mini_pbmc3k)
+target <- colData(mini_pbmc3k)
 target <- target$clusters
-exprs <- as.data.frame(SummarizedExperiment::assay(mini_pbmc3k, 'logcounts'))
+exprs <- as.data.frame(assay(mini_pbmc3k, 'logcounts'))
 
 fc <- new_fcoex(data.frame(exprs),target)
 
@@ -74,9 +74,9 @@ After the discretization, we proceed to constructing a network and extracting mo
 You can choose either to have a non-parallel processing, with a progress bar, or a faster parallel processing without progress bar. Up to you. 
 
 ```{r Finding cbf modules, message=FALSE }
-fc <- find_cbf_modules(fc,n_genes = 200, verbose = FALSE, is_parallel = TRUE)
+fc <- find_cbf_modules(fc,n_genes = 200, verbose = FALSE, is_parallel = FALSE)
 ```
-
+#' 
 
 There are two functions that do the same: both get_nets and plot_interactions take the modules and plot networks. You can pick the name you like better. These visualizations were heavily inspired by the CEMiTool package, as much of the code in fcoex.
 

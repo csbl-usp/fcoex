@@ -24,5 +24,5 @@ Get the number of genes in modules in a fcoex object
 }
 \examples{
 data("fc")
-mod_gene_num(fc)
+mod_gene_num(fc, module = "TYROBP")
 }
