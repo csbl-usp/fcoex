@@ -28,7 +28,6 @@
 #'
 #' @name fc
 #' @docType data
-#' @usage data(fc)
 #' @format An object of class \code{fcoex}
 #' @keywords datasets
 #' @examples
