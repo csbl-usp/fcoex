@@ -58,6 +58,7 @@ This range is divided in n bins of equal width (parameter to be set).
 The first bin is assigned to the class "low" and all the others to the class "high".
 
 ```{r Discretizing dataset, message=FALSE }
+
 fc <- discretize(fc, number_of_bins = 8)
 ```
 
