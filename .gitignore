@@ -2,8 +2,6 @@
 .Rhistory
 .RData
 .Ruserdata
-data/fc
-data/fc*
 *.rds
 .Rbuildignore .RData .Rhistory .Rproj.user
 fcoex.Rproj
