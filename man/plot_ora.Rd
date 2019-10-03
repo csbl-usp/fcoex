@@ -6,18 +6,18 @@
 \alias{plot_ora,fcoex-method}
 \title{ORA visualization}
 \usage{
-plot_ora(fc, ...)
+plot_ora(fc, n = 10, pv_cut = 0.05, ...)
 
 \S4method{plot_ora}{fcoex}(fc, n = 10, pv_cut = 0.05, ...)
 }
 \arguments{
 \item{fc}{Object of class \code{fcoex}.}
 
-\item{...}{parameters to plot_ora_single}
-
-\item{n}{number of modules to show}
+\item{n}{number of enrichments to show}
 
 \item{pv_cut}{p-value significance cutoff. Default is 0.05.}
+
+\item{...}{parameters to plot_ora_single}
 }
 \value{
 Object of class \code{fcoex} with ORA plots

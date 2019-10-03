@@ -291,7 +291,7 @@ setMethod('show_net', signature('fcoex'),
 #' Creates a bar plot with the results of module overrepresentation analysis
 #'
 #' @param fc Object of class \code{fcoex}.
-#' @param n number of modules to show
+#' @param n number of enrichments to show
 #' @param pv_cut p-value significance cutoff. Default is 0.05.
 #' @param ... parameters to plot_ora_single
 #'
@@ -304,7 +304,7 @@ setMethod('show_net', signature('fcoex'),
 #' fc <- plot_ora(fc)
 #' @rdname plot_ora
 #' @export
-setGeneric('plot_ora', function(fc, ...) {
+setGeneric('plot_ora', function(fc, n = 10, pv_cut = 0.05, ...) {
   standardGeneric('plot_ora')
 })
 
