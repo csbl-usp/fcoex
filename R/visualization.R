@@ -8,6 +8,7 @@
 #' @import stringr
 #' @importFrom network as.matrix.network.adjacency as.matrix.network.edgelist get.vertex.attribute
 #' @import grid
+#' @importFrom pathwayPCA read_gmt
 NULL
 
 
@@ -299,7 +300,7 @@ setMethod('show_net', signature('fcoex'),
 #' @examples 
 #' data("fc")
 #' gmt_fname <- system.file("extdata", "pathways.gmt", package = "CEMiTool")
-#' gmt_in <- read_gmt(gmt_fname)
+#' gmt_in <- pathwayPCA::read_gmt(gmt_fname)
 #' fc <- mod_ora(fc, gmt_in)
 #' fc <- plot_ora(fc)
 #' @rdname plot_ora

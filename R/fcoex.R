@@ -2,6 +2,7 @@
 #' @importFrom utils write.table head
 #' @importFrom stats cutree dist hclust
 #' @importFrom methods new 'slot<-' show
+#' @importFrom pathwayPCA read_gmt
 #' @import SingleCellExperiment
 #' @import dplyr
 
@@ -342,7 +343,7 @@ setMethod("find_cbf_modules", signature("fcoex"),
   message('Getting modules from adjacency matrix')
   for (i in colnames(su_i_j_matrix)) {
     tf_vector <-
-      su_i_j_matrix[, i] > su_to_class$SU[seq_along(su_to_class_small$gene))]
+      su_i_j_matrix[, i] > su_to_class$SU[seq_along(su_to_class_small$gene)]
     filtered_su_i_j_matrix[, i] <- su_i_j_matrix[, i] * tf_vector
   }
   
@@ -555,7 +556,7 @@ setMethod('show', signature(object = 'fcoex'),
 #' @examples 
 #' data("fc")
 #' gmt_fname <- system.file("extdata", "pathways.gmt", package = "CEMiTool")
-#' gmt_in <- read_gmt(gmt_fname)
+#' gmt_in <- pathwayPCA::read_gmt(gmt_fname)
 #' fc <- mod_ora(fc, gmt_in)
 #' @return  A fcoex object containing over-representation analysis data
 #' @rdname mod_ora
@@ -568,21 +569,34 @@ setGeneric('mod_ora', function(fc, gmt, verbose = FALSE) {
 setMethod('mod_ora', signature('fcoex'),
           function(fc, gmt, verbose = FALSE) {
             #fc <- get_args(fc, vars=mget(ls()))
-            if (!"gene" %in% names(gmt) | !"term" %in% names(gmt)) {
-              stop("The gmt object must contain two columns named 'term' and 'gene'")
+            if (!is(gmt, "pathwayCollection")) {
+              stop("The gmt object must be loaded via pathwayPCA::read_gmt and be a pathwayCollectionobject")
             }
+          
+            pathwayPCA_gmt <- gmt
+            gmt_df <- pathwayPCA_gmt$pathways
+
+            gmt_df <- as.data.frame(unlist(gmt_df), use.names = TRUE)
+            pathway_sizes <- unlist(lapply(pathwayPCA_gmt$pathways, length))
+            colnames(gmt_df) <- "gene"
+            gmt_df$term <- rep(pathwayPCA_gmt$TERMS, pathway_sizes)
+
+            
+            gmt_df<-gmt_df[,c("term","gene")]
+            
+            
             if (verbose) {
               message('Running ORA')
               message("Using all genes in GMT file as universe.")
             }
-            allgenes <- unique(gmt[, "gene"])
+            allgenes <- unique(gmt_df[, "gene"])
             if (is.null(fc@module_list)) {
               warning("No modules in fcoex object! Did you run find_modules()?")
               return(fc)
             }
             mods <- fc@module_list
             res_list <-
-              lapply(names(mods), ora, gmt, allgenes, mods)
+              lapply(names(mods), ora, gmt_df, allgenes, mods)
             if (all(lapply(res_list, nrow) == 0)) {
               warning(
                 "Enrichment is NULL. Either your gmt file is inadequate or your modules really aren't enriched for any of the pathways in the gmt file."

@@ -13,16 +13,6 @@ NULL
 #
 #
 ora <- function(mod_name, gmt_list, allgenes, mods) {
-
-  pathwayPCA_gmt <- gmt_list
-  gmt_df <- pathwayPCA_gmt$pathways
-  names(gmt_df) <- pathwayPCA_gmt$TERMS
-  
-  gmt_df <- as.data.frame(unlist(gmt_df))
-  colnames(gmt_df) <- "gene"
-  gmt_df$term <- rownames(gmt_df)
-  
-  
   if (missing(allgenes)) {
     message("Using all genes in GMT file as universe.")
     allgenes <- unique(gmt_list[, "gene"])

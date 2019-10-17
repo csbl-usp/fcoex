@@ -149,3 +149,71 @@ p4 <- plotReducedDim(mini_pbmc3k, dimred="UMAP", colour_by="CD79A")
 grid.arrange(p1, p2, p3, p4, nrow=2)
 ```
 
+#Integration to Seurat 
+
+
+Another popular framework for single-cell analysis is Seurat. Let's see how to integrate it with fcoex. 
+
+
+```{r Running Seurat pipeline, warning=FALSE}
+library(Seurat)
+library(fcoex)
+library(ggplot2)
+data(pbmc_small)
+
+exprs <- data.frame(GetAssayData(pbmc_small))
+target <- Idents(pbmc_small)
+
+fc <- new_fcoex(data.frame(exprs),target)
+fc <- discretize(fc)
+fc <- find_cbf_modules(fc,n_genes = 70, verbose = FALSE, is_parallel = FALSE)
+fc <- get_nets(fc)
+
+gmt_fname <- system.file("extdata", "pathways.gmt", package = "CEMiTool")
+gmt_in <- pathwayPCA::read_gmt(gmt_fname)
+fc <- mod_ora(fc, gmt_in)
+
+# In Seurat's sample data, pbmc small, no enrichments are found. 
+# That is way plot_ora is commented out.
+
+#fc <- plot_ora(fc)
+save_plots(name = "fcoex_vignette_Seurat", fc, force = TRUE)
+
+```
+Now let's recluster fcoex and visualize the new clusters via the UMAP saved in the Seurat object.
+
+
+```{r}
+
+fc <- recluster(fc) 
+
+file_name <- "pbmc3k_recluster_plots.pdf"
+directory <- "./Plots/"
+
+pbmc_small <- RunUMAP(pbmc_small, dims = 1:10)
+
+pdf(paste0(directory,file_name), width = 3, height = 3)
+
+print(DimPlot(pbmc_small))
+
+for (i in names(module_genes(fc))){
+  Idents(pbmc_small ) <-   idents(fc)[[i]]
+  mod_name <- paste0("M", which(names(idents(fc)) == i), " (", i,")")
+
+  plot2 <- DimPlot(pbmc_small, reduction = 'umap', cols = c("darkgreen", "dodgerblue3")) +
+    ggtitle(mod_name) 
+    print(plot2)
+}
+dev.off()
+
+```
+
+
+The clusters generate by fcoex match possible matches different Seurat clusters. Looking at the HN clusters:
+M1 matches cluster 1 (likely monocytes), 
+M2 matches clusters 0 and 1 (likely APCs, B + monocytes),
+M5 matches cluster 0 (likeky B)
+M7 maches a subset of cluster 2, and as it includes granzymes and granulolysins, this subset of 2 is likely cytotoxic cells (either NK or CD8)
+
+
+
