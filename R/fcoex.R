@@ -246,9 +246,12 @@ setMethod("find_cbf_modules", signature("fcoex"),
   
   # get the SU scores for each gene
   message('Getting SU scores')
-  su_ic_vector <- FCBF::get_su(discretized_exprs, target)
-  su_ic_vector$gene <- gsub('\\.', '-', rownames(su_ic_vector))
-  colnames(su_ic_vector)[1] <- 'SU'
+  su_to_class <- FCBF::get_su(discretized_exprs, target)
+  su_to_class$gene <- gsub('\\.', '-', rownames(su_to_class))
+  colnames(su_to_class)[1] <- 'SU'
+  
+  
+  # Run FCBF with the parameters of the function. 
   message('Running FCBF to find module headers')
   fcbf_filtered <-
     FCBF::fcbf(discretized_exprs,
@@ -256,18 +259,24 @@ setMethod("find_cbf_modules", signature("fcoex"),
                n_genes,
                thresh = FCBF_threshold,
                verbose = verbose)
+  
   fcbf_filtered$gene <- rownames(fcbf_filtered)
   # R does not like points. Subs for -.
   FCBF_genes <- gsub('\\.', '-', fcbf_filtered$gene)
   if (length(n_genes)) {
-    FCBF_threshold <- su_ic_vector$SU[n_genes]
+    FCBF_threshold <- su_to_class$SU[n_genes]
   }
+  
   # get only those with an SU score above a threshold
   SU_threshold <- FCBF_threshold
-  su_ic_vector_small <-
-    su_ic_vector[su_ic_vector[1] > SU_threshold, ]
-  SU_genes <- gsub('\\.', '-', su_ic_vector_small[, 2])
+  su_to_class_small <-
+    su_to_class[su_to_class[1] > SU_threshold, ]
+  
+  SU_genes <- gsub('\\.', '-', su_to_class_small[, 2])
+  
+  # Save the selected SU_genes  in the fc object
   fc@selected_genes <- SU_genes
+  
   exprs_small <- discretized_exprs[SU_genes , ]
   
 
@@ -294,7 +303,7 @@ setMethod("find_cbf_modules", signature("fcoex"),
       
     }
     su_i_j_matrix <- su_i_j_matrix[, -1]
-  }
+
   
   #      This was not faster than the for loop! ######
   #
@@ -318,14 +327,14 @@ setMethod("find_cbf_modules", signature("fcoex"),
   ##################################################
   
   # Second Try
-  else{
+  }  else {
     cl <- detectCores() - 2
     bla <- mclapply(SU_genes, function(i) {
       .get_correlates(i, su_i_j_matrix, discretized_exprs, exprs_small)
     }, mc.cores = cl)
     su_i_j_matrix <- as.data.frame(bla)
-    rownames(su_i_j_matrix) <- su_ic_vector_small$gene
-    colnames(su_i_j_matrix) <- su_ic_vector_small$gene
+    rownames(su_i_j_matrix) <- su_to_class_small$gene
+    colnames(su_i_j_matrix) <- su_to_class_small$gene
   }
   
   filtered_su_i_j_matrix <- data.frame(genes =  SU_genes)
@@ -333,7 +342,7 @@ setMethod("find_cbf_modules", signature("fcoex"),
   message('Getting modules from adjacency matrix')
   for (i in colnames(su_i_j_matrix)) {
     tf_vector <-
-      su_i_j_matrix[, i] > su_ic_vector$SU[seq_len(length(su_ic_vector_small$gene))]
+      su_i_j_matrix[, i] > su_to_class$SU[seq_along(su_to_class_small$gene))]
     filtered_su_i_j_matrix[, i] <- su_i_j_matrix[, i] * tf_vector
   }
   

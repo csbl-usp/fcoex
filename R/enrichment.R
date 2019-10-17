@@ -1,44 +1,6 @@
 #' @importFrom clusterProfiler enricher
 NULL
 
-
-#' Read a GMT file
-#'
-#' copied ipsis litteris from CEMiTool package.
-#' @param fname GMT file name.
-#' @return A list containing genes and description of each pathway
-#' @examples
-#' # Read example gmt file
-#' gmt_fname <- system.file("extdata", "pathways.gmt", package = "CEMiTool")
-#' gmt_in <- read_gmt(gmt_fname)
-#'
-#' @export
-
-read_gmt <- function(fname) {
-  res <- list(genes = list(), desc = list())
-  gmt <- file(fname)
-  gmt_lines <- readLines(gmt)
-  close(gmt)
-  gmt_list <-
-    lapply(gmt_lines, function(x)
-      unlist(strsplit(x, split = "\t")))
-  gmt_names <- lapply(gmt_list, '[', 1)
-  gmt_desc <- lapply(gmt_list, '[', 2)
-  gmt_genes <- lapply(gmt_list, function(x) {
-    x[3:length(x)]
-  })
-  names(gmt_desc) <- names(gmt_genes) <- gmt_names
-  res <- do.call(rbind, lapply(names(gmt_genes),
-                               function(n)
-                                 cbind.data.frame(
-                                   term = n,
-                                   gene = gmt_genes[[n]],
-                                   stringsAsFactors = FALSE
-                                 )))
-  res$term <- as.factor(res$term)
-  return(res)
-}
-
 # Performs Over Representation Analysis for a list of genes and a GMT
 #
 # @keywords internal
@@ -51,6 +13,16 @@ read_gmt <- function(fname) {
 #
 #
 ora <- function(mod_name, gmt_list, allgenes, mods) {
+
+  pathwayPCA_gmt <- gmt_list
+  gmt_df <- pathwayPCA_gmt$pathways
+  names(gmt_df) <- pathwayPCA_gmt$TERMS
+  
+  gmt_df <- as.data.frame(unlist(gmt_df))
+  colnames(gmt_df) <- "gene"
+  gmt_df$term <- rownames(gmt_df)
+  
+  
   if (missing(allgenes)) {
     message("Using all genes in GMT file as universe.")
     allgenes <- unique(gmt_list[, "gene"])
