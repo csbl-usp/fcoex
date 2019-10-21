@@ -448,6 +448,8 @@ plot_ora_single <-
 #'
 #' @description
 #' Save plots into the directory specified by the \code{directory} argument.
+#' Note: If no directory is specified, it will save to tempdir().
+#' A possible option is setting directory = "./Plots"
 #'
 #' @param fc Object of class \code{fcoex}.
 #' @param name The name of the file to be saved.
@@ -461,7 +463,7 @@ plot_ora_single <-
 #' @export
 setGeneric('save_plots', function(fc, name,
                                   force = FALSE,
-                                  directory = "./Plots") {
+                                  directory = "tempdir()") {
   standardGeneric('save_plots')
 })
 
@@ -470,7 +472,7 @@ setMethod('save_plots', signature('fcoex'),
           function(fc,
                    name,
                    force = FALSE,
-                   directory = "./Plots") {
+                   directory = "tempdir()") {
             if (dir.exists(directory)) {
               if (!force) {
                 stop("Stopping analysis: ",

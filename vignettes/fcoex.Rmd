@@ -108,7 +108,7 @@ fc <- plot_ora(fc)
 Now we can save the plots again. Note that we have to set the force parameter  equal to TRUE now, as the "./Plots" directory was already created in the previous step. 
 
 ```{r Saving plots again, message=FALSE, results='hide'}
-save_plots(name = "fcoex_vignette", fc, force = TRUE)
+save_plots(name = "fcoex_vignette", fc, force = TRUE, directory = "./Plots")
 ```
 
 
