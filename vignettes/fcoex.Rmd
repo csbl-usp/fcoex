@@ -92,8 +92,8 @@ show_net(fc)[["HLA-DRB1"]]
 ```
 
 To save the plots, you can run the save plots function, which will create a "./Plots" directory and store plots there.
-```{r Saving plots, message=FALSE, results='hide'}
-save_plots(name = "fcoex_vignette", fc,force = TRUE)
+```{r Saving plots, eval= FALSE, message=FALSE, results='hide'}
+save_plots(name = "fcoex_vignette", fc,force = TRUE, , directory = "./Plots")
 ```
 
 You can also run  over-representation analysis to see if the modules correspond to any known biological pathway. For this, we will use the reactome groups available in the CEMiTool package:
@@ -107,7 +107,7 @@ fc <- plot_ora(fc)
 
 Now we can save the plots again. Note that we have to set the force parameter  equal to TRUE now, as the "./Plots" directory was already created in the previous step. 
 
-```{r Saving plots again, message=FALSE, results='hide'}
+```{r Saving plots again,  eval= FALSE, message=FALSE, results='hide'}
 save_plots(name = "fcoex_vignette", fc, force = TRUE, directory = "./Plots")
 ```
 
@@ -117,7 +117,7 @@ There is now a folder with the correlations, to explore the data.
 
 We will use the module assignments to subdivide the cells in populations of interest. This is a way to explore the data and look for possible novel groupings ignored in the previous clustering step.
 
-```{r Reclustering, , message=FALSE}
+```{r Reclustering , message=FALSE}
 
 fc <- recluster(fc)
 
@@ -177,13 +177,14 @@ fc <- mod_ora(fc, gmt_in)
 # That is way plot_ora is commented out.
 
 #fc <- plot_ora(fc)
-save_plots(name = "fcoex_vignette_Seurat", fc, force = TRUE)
-
 ```
+
+```{r Saving Seurat plots, eval = FALSE}
+save_plots(name = "fcoex_vignette_Seurat", fc, force = TRUE, directory = "./Plots")
+```
+
 Now let's recluster fcoex and visualize the new clusters via the UMAP saved in the Seurat object.
-
-
-```{r}
+```{r Plotting and saving reclusters,  eval = FALSE}
 
 fc <- recluster(fc) 
 
