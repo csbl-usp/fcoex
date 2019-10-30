@@ -7,7 +7,13 @@
 .plot_one_interaction(adjacency_matrix, n, color, name)
 }
 \arguments{
-\item{fc}{Object of class \code{fcoex}.}
+\item{adjacency_matrix}{An adajcency matrix from the \code{fcoex} object.}
+
+\item{n}{Number of genes to be shown}
+
+\item{color}{Color of the module to be plotted}
+
+\item{name}{Name of the module to be plotted}
 
 \item{...}{Optional parameters.}
 }

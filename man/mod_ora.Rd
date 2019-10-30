@@ -26,6 +26,6 @@ A fcoex object containing over-representation analysis data
 \examples{
 data("fc")
 gmt_fname <- system.file("extdata", "pathways.gmt", package = "CEMiTool")
-gmt_in <- read_gmt(gmt_fname)
+gmt_in <- pathwayPCA::read_gmt(gmt_fname)
 fc <- mod_ora(fc, gmt_in)
 }

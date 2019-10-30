@@ -1,8 +1,11 @@
-#' @importFrom grDevices rainbow
-#' @importFrom utils write.table
+#' @importFrom grDevices rainbow dev.off pdf
+#' @importFrom utils write.table head
+#' @importFrom stats cutree dist hclust
 #' @importFrom methods new 'slot<-' show
+#' @importFrom pathwayPCA read_gmt
 #' @import SingleCellExperiment
 #' @import dplyr
+
 
 setOldClass('gg')
 setOldClass('ggplot')
@@ -72,8 +75,8 @@ setMethod("initialize", signature = "fcoex",
 #' fc <- new_fcoex(exprs, targets)
 
 #' @export
-new_fcoex <- function(expr = data.frame(), target = vector()) {
-  fc <- new("fcoex", expression = expr, target = target)
+new_fcoex <- function(expression = data.frame(), target = vector()) {
+  fc <- new("fcoex", expression = expression, target = target)
   msg <- "Created new fcoex object."
   message(msg)
   return(fc)
@@ -123,7 +126,12 @@ new_fcoex <- function(expr = data.frame(), target = vector()) {
 #' @import FCBF
 #' @rdname discretize
 #' @export
-setGeneric("discretize", function(fc, ...) {
+setGeneric("discretize", function(fc, number_of_bins = 4,
+                                  method = "varying_width",
+                                  alpha = 1,
+                                  centers = 3,
+                                  min_max_cutoff = 0.25,
+                                  show_pb = TRUE) {
   standardGeneric("discretize")
 })
 
@@ -239,9 +247,12 @@ setMethod("find_cbf_modules", signature("fcoex"),
   
   # get the SU scores for each gene
   message('Getting SU scores')
-  su_ic_vector <- FCBF::get_su(discretized_exprs, target)
-  su_ic_vector$gene <- gsub('\\.', '-', rownames(su_ic_vector))
-  colnames(su_ic_vector)[1] <- 'SU'
+  su_to_class <- FCBF::get_su(discretized_exprs, target)
+  su_to_class$gene <- gsub('\\.', '-', rownames(su_to_class))
+  colnames(su_to_class)[1] <- 'SU'
+  
+  
+  # Run FCBF with the parameters of the function. 
   message('Running FCBF to find module headers')
   fcbf_filtered <-
     FCBF::fcbf(discretized_exprs,
@@ -249,18 +260,24 @@ setMethod("find_cbf_modules", signature("fcoex"),
                n_genes,
                thresh = FCBF_threshold,
                verbose = verbose)
+  
   fcbf_filtered$gene <- rownames(fcbf_filtered)
   # R does not like points. Subs for -.
   FCBF_genes <- gsub('\\.', '-', fcbf_filtered$gene)
   if (length(n_genes)) {
-    FCBF_threshold <- su_ic_vector$SU[n_genes]
+    FCBF_threshold <- su_to_class$SU[n_genes]
   }
+  
   # get only those with an SU score above a threshold
   SU_threshold <- FCBF_threshold
-  su_ic_vector_small <-
-    su_ic_vector[su_ic_vector[1] > SU_threshold, ]
-  SU_genes <- gsub('\\.', '-', su_ic_vector_small[, 2])
+  su_to_class_small <-
+    su_to_class[su_to_class[1] > SU_threshold, ]
+  
+  SU_genes <- gsub('\\.', '-', su_to_class_small[, 2])
+  
+  # Save the selected SU_genes  in the fc object
   fc@selected_genes <- SU_genes
+  
   exprs_small <- discretized_exprs[SU_genes , ]
   
 
@@ -287,7 +304,7 @@ setMethod("find_cbf_modules", signature("fcoex"),
       
     }
     su_i_j_matrix <- su_i_j_matrix[, -1]
-  }
+
   
   #      This was not faster than the for loop! ######
   #
@@ -311,14 +328,14 @@ setMethod("find_cbf_modules", signature("fcoex"),
   ##################################################
   
   # Second Try
-  else{
+  }  else {
     cl <- detectCores() - 2
     bla <- mclapply(SU_genes, function(i) {
       .get_correlates(i, su_i_j_matrix, discretized_exprs, exprs_small)
     }, mc.cores = cl)
     su_i_j_matrix <- as.data.frame(bla)
-    rownames(su_i_j_matrix) <- su_ic_vector_small$gene
-    colnames(su_i_j_matrix) <- su_ic_vector_small$gene
+    rownames(su_i_j_matrix) <- su_to_class_small$gene
+    colnames(su_i_j_matrix) <- su_to_class_small$gene
   }
   
   filtered_su_i_j_matrix <- data.frame(genes =  SU_genes)
@@ -326,7 +343,7 @@ setMethod("find_cbf_modules", signature("fcoex"),
   message('Getting modules from adjacency matrix')
   for (i in colnames(su_i_j_matrix)) {
     tf_vector <-
-      su_i_j_matrix[, i] > su_ic_vector$SU[seq_len(length(su_ic_vector_small$gene))]
+      su_i_j_matrix[, i] > su_to_class$SU[seq_along(su_to_class_small$gene)]
     filtered_su_i_j_matrix[, i] <- su_i_j_matrix[, i] * tf_vector
   }
   
@@ -387,7 +404,7 @@ setMethod('nmodules', signature('fcoex'),
 #' module is#' given, the number of genes in that module is returned instead.
 #' @examples 
 #' data("fc")
-#' mod_gene_num(fc)
+#' mod_gene_num(fc, module = "TYROBP")
 #' @return The number of genes in module(s)
 #'
 #' @rdname mod_gene_num
@@ -408,8 +425,13 @@ setMethod('mod_gene_num', signature(fc = 'fcoex'),
             }
             if (!is.null(module)) {
               mod_genes <- fc@module_list[[module]]
+              return(mod_genes)
+            } 
+            
+            if (is.null(module)) {
+              stop("No modules selected!")
             }
-            return(mod_genes)
+
           })
 
 
@@ -502,7 +524,7 @@ setMethod('show', signature(object = 'fcoex'),
             if (length(object@module_list) == 0) {
               cat("null\n")
             } else {
-              cat(names(fc@module_list), sep = ", ")
+              cat(names(object@module_list), sep = ", ")
               cat('\n')
             }
             cat("- Expression file: ")
@@ -526,181 +548,6 @@ setMethod('show', signature(object = 'fcoex'),
             }
           })
 
-#' Transform module genes list to a gmt file
-#'
-#' @keywords internal
-#'
-#' @param fc A fcoex object.
-#' @examples 
-#' data("fc")
-#' module_to_gmt(fc)
-#' @return A .gmt file containing module genes in each row
-#'
-module_to_gmt <- function(fc, directory = "./Tables") {
-  if (length(fc@module_list) == 0) {
-    stop("No modules in fcoex object! Did you run find_modules()?")
-  } else{
-    gene_modules <- fc@module
-    n_genes <-
-      as.numeric(table(gene_modules$modules[gene_modules$modules != "Not.Correlated"]))
-    n_genes <- n_genes[seq_len((length(n_genes)))]
-    module_names <-
-      as.character(unique(gene_modules[, "modules"]))
-    module_names <-
-      module_names[module_names != "Not.Correlated"]
-    module_names <-
-      module_names[order(nchar(module_names), module_names)]
-    
-    gmt_df  <-
-      as.data.frame(matrix("", ncol = max(n_genes), nrow = length(n_genes)), 
-                    stringsAsFactors = FALSE)
-    
-    rownames(gmt_df) <- module_names
-    
-    for (i in seq_len(length(module_names))) {
-      mod <- module_names[i]
-      selected <-
-        gene_modules[gene_modules$modules == mod, "genes"]
-      gmt_df[mod, seq_len(length((selected)))] <- selected
-    }
-    
-    gmt_df <- as.data.frame(cbind(module_names, gmt_df))
-    write.table(
-      gmt_df,
-      file.path(directory, "modules_genes.gmt"),
-      sep = "\t",
-      col.names = FALSE,
-      quote = FALSE
-    )
-  }
-}
-
-
-#' Save the fcoex object in files
-#'
-#' @param fc Object of class \code{fcoex}
-#' @param directory a directory
-#' @param force if the directory exists the execution will not stop
-#' @param ... Optional parameters
-#' @return A directory containing fcoex results in files.
-#' @examples
-#' data("fc")
-#' write_files(fc, directory=".", force=TRUE)
-#'
-#' @rdname write_files
-#' @export
-setGeneric('write_files', function(fc, ...) {
-  standardGeneric('write_files')
-})
-
-#' @rdname write_files
-setMethod('write_files', signature(fc = 'fcoex'),
-          function(fc,
-                   directory = "./Tables",
-                   force = FALSE) {
-            if (dir.exists(directory)) {
-              if (!force) {
-                stop("Stopping analysis: ",
-                     directory,
-                     " already exists! Use force=TRUE to overwrite.")
-              }
-            } else {
-              dir.create(directory, recursive = TRUE)
-            }
-            
-            if (nrow(fc@module) > 0) {
-              write.table(
-                fc@module,
-                file.path(directory, "module.tsv"),
-                sep = "\t",
-                row.names = FALSE
-              )
-              
-              mean_summary <- mod_summary(fc, "mean")
-              write.table(
-                mean_summary,
-                file.path(directory, "summary_mean.tsv"),
-                sep = "\t",
-                row.names = FALSE
-              )
-              
-              median_summary <- mod_summary(fc, "median")
-              write.table(
-                median_summary,
-                file.path(directory, "summary_median.tsv"),
-                sep = "\t",
-                row.names = FALSE
-              )
-              
-              eg_summary <- mod_summary(fc, "eigengene")
-              write.table(
-                eg_summary,
-                file.path(directory, "summary_eigengene.tsv"),
-                sep = "\t",
-                row.names = FALSE
-              )
-              
-              module_to_gmt(fc, directory = directory)
-            }
-            
-            expr_f <- expr_data(
-              fc,
-              filter = fc@parameters$filter,
-              apply_vst = fc@parameters$apply_vst
-            )
-            selected <- select_genes(expr_f)
-            writeLines(selected, file.path(directory, "selected_genes.txt"))
-            
-            if (length(fc@enrichment) > 0) {
-              for (stat in names(fc@enrichment)) {
-                write.table(
-                  fc@enrichment[[stat]],
-                  file.path(directory, paste0("enrichment_", stat, ".tsv")),
-                  sep = "\t",
-                  row.names = FALSE
-                )
-              }
-            }
-            
-            if (nrow(fc@ora) > 0) {
-              write.table(fc@ora,
-                          file.path(directory, "ora.tsv"),
-                          sep = "\t",
-                          row.names = FALSE)
-            }
-            
-            if (length(fc@interactions) > 0) {
-              mod_ints <- lapply(names(fc@interactions), function(x) {
-                mod_int <- igraph::get.edgelist(fc@interactions[[x]])
-                if (nrow(mod_int) > 0) {
-                  cbind(x, mod_int)
-                }
-              })
-              int_df <- do.call("rbind", mod_ints)
-              colnames(int_df) <- c("Module", "Gene1", "Gene2")
-              write.table(
-                int_df,
-                file.path(directory, "interactions.tsv"),
-                sep = "\t",
-                row.names = FALSE
-              )
-            }
-            
-            if (length(fc@parameters) > 0) {
-              params <- fc@parameters
-              param_df <-
-                data.frame(Parameter = names(params), Value = as.character(params))
-              write.table(
-                param_df,
-                file.path(directory, "parameters.tsv"),
-                sep = "\t",
-                row.names = FALSE
-              )
-            }
-          })
-
-
-
 #' # Run module overrepresentation analysis
 #'
 #' @param fc A fcoex object.
@@ -709,7 +556,7 @@ setMethod('write_files', signature(fc = 'fcoex'),
 #' @examples 
 #' data("fc")
 #' gmt_fname <- system.file("extdata", "pathways.gmt", package = "CEMiTool")
-#' gmt_in <- read_gmt(gmt_fname)
+#' gmt_in <- pathwayPCA::read_gmt(gmt_fname)
 #' fc <- mod_ora(fc, gmt_in)
 #' @return  A fcoex object containing over-representation analysis data
 #' @rdname mod_ora
@@ -722,21 +569,34 @@ setGeneric('mod_ora', function(fc, gmt, verbose = FALSE) {
 setMethod('mod_ora', signature('fcoex'),
           function(fc, gmt, verbose = FALSE) {
             #fc <- get_args(fc, vars=mget(ls()))
-            if (!"gene" %in% names(gmt) | !"term" %in% names(gmt)) {
-              stop("The gmt object must contain two columns named 'term' and 'gene'")
+            if (!is(gmt, "pathwayCollection")) {
+              stop("The gmt object must be loaded via pathwayPCA::read_gmt and be a pathwayCollectionobject")
             }
+          
+            pathwayPCA_gmt <- gmt
+            gmt_df <- pathwayPCA_gmt$pathways
+
+            gmt_df <- as.data.frame(unlist(gmt_df), use.names = TRUE)
+            pathway_sizes <- unlist(lapply(pathwayPCA_gmt$pathways, length))
+            colnames(gmt_df) <- "gene"
+            gmt_df$term <- rep(pathwayPCA_gmt$TERMS, pathway_sizes)
+
+            
+            gmt_df<-gmt_df[,c("term","gene")]
+            
+            
             if (verbose) {
               message('Running ORA')
               message("Using all genes in GMT file as universe.")
             }
-            allgenes <- unique(gmt[, "gene"])
+            allgenes <- unique(gmt_df[, "gene"])
             if (is.null(fc@module_list)) {
               warning("No modules in fcoex object! Did you run find_modules()?")
               return(fc)
             }
             mods <- fc@module_list
             res_list <-
-              lapply(names(mods), ora, gmt, allgenes, mods)
+              lapply(names(mods), ora, gmt_df, allgenes, mods)
             if (all(lapply(res_list, nrow) == 0)) {
               warning(
                 "Enrichment is NULL. Either your gmt file is inadequate or your modules really aren't enriched for any of the pathways in the gmt file."
@@ -799,13 +659,17 @@ setMethod("ora_data", signature("fcoex"),
 #' @param hclust_method method for the hclust function. Defaults to "ward.D2".
 #' @param dist_method  method for the dist function. Defaults to "manhattan".
 #' @param k desired number of clustes. Defaults to 2.
+#' @param verbose Adds verbosity, defaults to TRUE.
 #' @return Object of class \code{data.frame} with new clusters
 #' @examples 
 #' data("fc")
 #' fc <- recluster(fc)
 #' @export
 #' @rdname recluster
-setGeneric("recluster", function(fc, ...) {
+setGeneric("recluster", function(fc, hclust_method = "ward.D2",
+                                 dist_method = 'manhattan',
+                                 k = 2,
+                                 verbose = TRUE) {
   standardGeneric("recluster")
 })
 #' @rdname recluster
@@ -813,17 +677,41 @@ setMethod("recluster", signature("fcoex"),
           function(fc,
                    hclust_method = "ward.D2",
                    dist_method = 'manhattan',
-                   k = 2) {
+                   k = 2,
+                   verbose = TRUE) {
             mod_idents <- list()
+  
+            if (verbose){
+              message("Detecting clusters for the following modules: ")   
+            }
+
             for (i in names(fc@module_list)) {
-              print(i)
+              if (verbose){
+                message(print(i))   
+              }
               expression_table <-
                 fc@expression[fc@module_list[[i]], ]
               d <-
                 dist(t(as.matrix(expression_table)), method = dist_method)
               hc <- hclust(d, method = hclust_method)
               idents <- as.factor(cutree(hc, k))
-              mod_idents[[i]] <- idents
+
+              if (k == 2){
+               mean_1 <-  mean(as.numeric(fc@expression[i,][idents==1]))
+               mean_2 <-  mean(as.numeric(fc@expression[i,][idents==2]))
+               if (mean_1 > mean_2){
+                 # The first cluster will be the header positive cluster
+                 first = "HP"
+                 second = "HN"
+               } else {
+                 # The first cluster will be the header negative cluster
+                 first = "HN"
+                 second = "HP"
+                 }
+              idents <- ifelse(idents == 1, first, second)
+                
+              }
+              mod_idents[[i]] <- as.factor(idents)
             }
             fc@mod_idents <- mod_idents
             return(fc)

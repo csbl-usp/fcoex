@@ -4,13 +4,13 @@
 \alias{new_fcoex}
 \title{Create a fcoex object}
 \usage{
-new_fcoex(expr = data.frame(), target = vector())
+new_fcoex(expression = data.frame(), target = vector())
 }
 \arguments{
-\item{target}{Original target classes for the cells (\code{factor}).}
-
 \item{expression}{Normalized gene expression table from single-cells
 \code{data.frame}.}
+
+\item{target}{Original target classes for the cells (\code{factor}).}
 }
 \value{
 Object of class \code{fcoex}

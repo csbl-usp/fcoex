@@ -6,10 +6,10 @@
 \alias{save_plots,fcoex-method}
 \title{Save fcoex object plots}
 \usage{
-save_plots(fc, name, force = FALSE, directory = "./Plots")
+save_plots(fc, name, force = FALSE, directory = "tempdir()")
 
 \S4method{save_plots}{fcoex}(fc, name, force = FALSE,
-  directory = "./Plots")
+  directory = "tempdir()")
 }
 \arguments{
 \item{fc}{Object of class \code{fcoex}.}
@@ -25,6 +25,8 @@ A pdf file or files with the desired plot(s)
 }
 \description{
 Save plots into the directory specified by the \code{directory} argument.
+Note: If no directory is specified, it will save to tempdir().
+A possible option is setting directory = "./Plots"
 }
 \examples{
 data(fc)

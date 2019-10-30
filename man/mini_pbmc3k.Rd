@@ -5,9 +5,6 @@
 \alias{mini_pbmc3k}
 \title{Processed subset of the pbmc3k dataset from PBMC genomics}
 \format{An object of class \code{SingleCellExperiment}}
-\source{
-\href{https://bioconductor.org/packages/release/data/experiment/html/TENxPBMCData.html}
-}
 \usage{
 data(mini_pbmc3k)
 }

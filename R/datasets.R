@@ -16,7 +16,6 @@
 #' @usage data(mini_pbmc3k)
 #' @format An object of class \code{SingleCellExperiment}
 #' @keywords datasets
-#' @source \href{https://bioconductor.org/packages/release/data/experiment/html/TENxPBMCData.html}
 #' @examples
 #' data(mini_pbmc3k)
 #' mini_pbmc3k
@@ -29,7 +28,6 @@
 #'
 #' @name fc
 #' @docType data
-#' @usage data(fc)
 #' @format An object of class \code{fcoex}
 #' @keywords datasets
 #' @examples

@@ -6,7 +6,7 @@
 \title{Example fcoex object}
 \format{An object of class \code{fcoex}}
 \usage{
-data(fc)
+fc
 }
 \description{
 Example fcoex object processed from the mini_pbmc3k dataset.

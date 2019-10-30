@@ -8,6 +8,7 @@
 #' @import stringr
 #' @importFrom network as.matrix.network.adjacency as.matrix.network.edgelist get.vertex.attribute
 #' @import grid
+#' @importFrom pathwayPCA read_gmt
 NULL
 
 
@@ -140,6 +141,7 @@ setMethod('get_nets', signature('fcoex'),
 #' data("fc")
 #' mod_colors(fc)
 #' @rdname mod_colors
+#' @export
 setGeneric("mod_colors", function(fc) {
   standardGeneric("mod_colors")
 })
@@ -174,7 +176,10 @@ setMethod("mod_colors", signature("fcoex"),
 #'
 #' Creates a graph based on interactions provided
 #'
-#' @param fc Object of class \code{fcoex}.
+#' @param adjacency_matrix An adajcency matrix from the \code{fcoex} object.
+#' @param n Number of genes to be shown
+#' @param color Color of the module to be plotted
+#' @param name Name of the module to be plotted
 #' @param ... Optional parameters.
 #' @return  A ggplot2 ('gg') object
 .plot_one_interaction <- function(adjacency_matrix, n, color, name) {
@@ -287,7 +292,7 @@ setMethod('show_net', signature('fcoex'),
 #' Creates a bar plot with the results of module overrepresentation analysis
 #'
 #' @param fc Object of class \code{fcoex}.
-#' @param n number of modules to show
+#' @param n number of enrichments to show
 #' @param pv_cut p-value significance cutoff. Default is 0.05.
 #' @param ... parameters to plot_ora_single
 #'
@@ -295,12 +300,12 @@ setMethod('show_net', signature('fcoex'),
 #' @examples 
 #' data("fc")
 #' gmt_fname <- system.file("extdata", "pathways.gmt", package = "CEMiTool")
-#' gmt_in <- read_gmt(gmt_fname)
+#' gmt_in <- pathwayPCA::read_gmt(gmt_fname)
 #' fc <- mod_ora(fc, gmt_in)
 #' fc <- plot_ora(fc)
 #' @rdname plot_ora
 #' @export
-setGeneric('plot_ora', function(fc, ...) {
+setGeneric('plot_ora', function(fc, n = 10, pv_cut = 0.05, ...) {
   standardGeneric('plot_ora')
 })
 
@@ -443,6 +448,8 @@ plot_ora_single <-
 #'
 #' @description
 #' Save plots into the directory specified by the \code{directory} argument.
+#' Note: If no directory is specified, it will save to tempdir().
+#' A possible option is setting directory = "./Plots"
 #'
 #' @param fc Object of class \code{fcoex}.
 #' @param name The name of the file to be saved.
@@ -456,7 +463,7 @@ plot_ora_single <-
 #' @export
 setGeneric('save_plots', function(fc, name,
                                   force = FALSE,
-                                  directory = "./Plots") {
+                                  directory = "tempdir()") {
   standardGeneric('save_plots')
 })
 
@@ -465,7 +472,7 @@ setMethod('save_plots', signature('fcoex'),
           function(fc,
                    name,
                    force = FALSE,
-                   directory = "./Plots") {
+                   directory = "tempdir()") {
             if (dir.exists(directory)) {
               if (!force) {
                 stop("Stopping analysis: ",
