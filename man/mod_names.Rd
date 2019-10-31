@@ -20,7 +20,7 @@ module. Defaults to \code{TRUE}.}
 Module names
 }
 \description{
-Get module names in a fcoex object
+This function was copied and adapted from the CEMiTool package.
 }
 \examples{
 data("fc")

@@ -25,6 +25,11 @@ Object of class \code{fcoex} with ORA plots
 \description{
 Creates a bar plot with the results of module overrepresentation analysis
 }
+\details{
+This function was copied and adapted from the CEMiTool package.
+The visualization in this function is derivative of the 
+intelectual work of CEMiTool's authors.
+}
 \examples{
 data("fc")
 gmt_fname <- system.file("extdata", "pathways.gmt", package = "CEMiTool")

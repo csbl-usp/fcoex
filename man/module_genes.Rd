@@ -22,7 +22,7 @@ Object of class \code{data.frame} containing genes and their
 respective module
 }
 \description{
-Get the module genes in a fcoex object
+This function was copied and adapted from the CEMiTool package.
 }
 \examples{
 data("fc")

@@ -25,6 +25,8 @@ plot_ora_single(es, ordr_by = "p.adjust", max_length = 50,
 a list with ggplot2 object and the number of significant gene sets
 }
 \description{
-ORA visualization for one module
+This function was copied and adapted from the CEMiTool package.
+The visualization in this function is derivative of the 
+intelectual work of CEMiTool's authors.
 }
 \keyword{internal}

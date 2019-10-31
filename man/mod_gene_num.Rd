@@ -4,7 +4,8 @@
 \name{mod_gene_num}
 \alias{mod_gene_num}
 \alias{mod_gene_num,fcoex-method}
-\title{Get the number of genes in modules in a fcoex object}
+\title{Get the number of genes in modules in a fcoex object
+This function was copied and adapted from the CEMiTool package.}
 \usage{
 mod_gene_num(fc, module = NULL)
 
@@ -21,6 +22,7 @@ The number of genes in module(s)
 }
 \description{
 Get the number of genes in modules in a fcoex object
+This function was copied and adapted from the CEMiTool package.
 }
 \examples{
 data("fc")

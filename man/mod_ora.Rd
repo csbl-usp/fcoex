@@ -21,7 +21,8 @@ mod_ora(fc, gmt, verbose = FALSE)
 A fcoex object containing over-representation analysis data
 }
 \description{
-# Run module overrepresentation analysis
+This function was modified from the CEMiTool package.
+Chunks of code were retained "as is"
 }
 \examples{
 data("fc")

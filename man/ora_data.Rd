@@ -29,6 +29,8 @@ enriched for a given pathway out of all the genes in the module enriched
 for any given pathway. The BgRatio column shows the proportion of genes 
 in a given pathway out of all the genes in the gmt file. For more details,
 please refer to the \code{clusterProfiler} package documentation.
+
+This function was ipsis litteris adapted from the CEMiTool package.
 }
 \examples{
 data("fc")
