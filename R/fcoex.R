@@ -29,7 +29,9 @@ setOldClass('gtable')
 #' genes selected for analysis
 #' @slot module_list \code{list} containing genes in each module.
 #' @slot adjacency \code{data.frame} containing the adjacency table for 
-#' the selected genes.
+#' the selected genes before trimming.
+#' @slot adjacency_trimmed \code{data.frame} containing the adjacency table for 
+#' the selected genes after trimming. 
 #' @slot coex_network_plot list of ggplot graphs with module gene interactions.
 #' @slot new_clusters \code{list} containing gene interactions present in 
 #' modules.
@@ -50,6 +52,7 @@ setClass(
     selected_genes = 'vector',
     module_list = 'list',
     adjacency = 'list',
+    adjacency_trimmed = 'list',
     coex_network_plot = 'list',
     new_clusters = 'list',
     mod_colors = 'character',
@@ -347,7 +350,7 @@ setMethod("find_cbf_modules", signature("fcoex"),
   
   filtered_su_i_j_matrix <- data.frame(genes =  SU_genes)
   
-  message('Getting modules from adjacency matrix')
+  message('Trimming and getting modules from adjacency matrix')
   for (i in colnames(su_i_j_matrix)) {
     tf_vector <-
       su_i_j_matrix[, i] > su_to_class$SU[seq_along(su_to_class_small$gene)]
@@ -366,7 +369,8 @@ setMethod("find_cbf_modules", signature("fcoex"),
     }
   }
   
-  fc@adjacency <- filtered_su_i_j_matrix
+  fc@adjacency <- su_i_j_matrix
+  fc@adjacency_trimmed <- filtered_su_i_j_matrix
   fc@module_list <- list_of_fcbf_modules
   return(fc)
 })

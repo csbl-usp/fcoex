@@ -24,7 +24,10 @@ genes selected for analysis}
 \item{\code{module_list}}{\code{list} containing genes in each module.}
 
 \item{\code{adjacency}}{\code{data.frame} containing the adjacency table for 
-the selected genes.}
+the selected genes before trimming.}
+
+\item{\code{adjacency_trimmed}}{\code{data.frame} containing the adjacency table for 
+the selected genes after trimming.}
 
 \item{\code{coex_network_plot}}{list of ggplot graphs with module gene interactions.}
 
