@@ -114,8 +114,8 @@ setMethod('get_nets', signature('fcoex'),
             fc <- mod_colors(fc)
             module_cols <- fc@mod_colors
             mod_names <- names(fc@module_list)
-            adjacency_full <- fc@adjacency
-            adj <- fc@adjacency[, -1]
+            adjacency_full <- fc@adjacency_trimmed
+            adj <- fc@adjacency_trimmed[, -1]
             rownames(adj) <- colnames(adj)
             res <- lapply(mod_names, function(name) {
               members_of_module <- fc@module_list[[name]]
