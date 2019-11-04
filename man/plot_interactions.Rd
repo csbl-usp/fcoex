@@ -25,6 +25,11 @@ Object of class \code{fcoex} with profile plots
 \description{
 Creates a graph based on interactions provided
 }
+\details{
+This function was copied and adapted from the CEMiTool package.
+The visualization of networks in this function is derivative of the 
+intelectual work of CEMiTool's authors.
+}
 \examples{
 library(SingleCellExperiment)  
 data("mini_pbmc3k")

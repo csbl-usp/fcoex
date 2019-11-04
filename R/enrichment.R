@@ -2,7 +2,8 @@
 NULL
 
 # Performs Over Representation Analysis for a list of genes and a GMT
-#
+# This function was modified from the CEMiTool package.
+# Chunks of code were retained "as is"
 # @keywords internal
 #
 # @param topgenes a vector of genes

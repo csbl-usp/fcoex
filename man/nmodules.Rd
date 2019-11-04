@@ -17,7 +17,7 @@ nmodules(fc)
 number of modules
 }
 \description{
-Get the number of modules in a fcoex object
+This function was copied and adapted from the CEMiTool package.
 }
 \examples{
 data("fc")

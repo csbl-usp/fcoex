@@ -1,3 +1,12 @@
+# Many parts of this code were directly adapted from the
+# CEMiTool package. This include chunks of copied and pasted code
+# located inside the source code for CEMiTool functions. 
+# Functions that contained adapted code were explicit denoted.
+
+
+
+
+
 #' @import ggplot2
 #' @importFrom sna gplot.layout.fruchtermanreingold
 #' @importFrom data.table melt
@@ -15,6 +24,11 @@ NULL
 #' Network visualization
 #'
 #' Creates a graph based on interactions provided
+#'
+#' This function was copied and adapted from the CEMiTool package.
+#' The visualization of networks in this function is derivative of the 
+#' intelectual work of CEMiTool's authors.
+#'
 #'
 #' @param fc Object of class \code{fcoex}.
 #' @param n number of nodes to label
@@ -77,6 +91,10 @@ setMethod('plot_interactions', signature('fcoex'),
 #' Creates network visualizations based on the adjacency matrix
 #' obtained with the find_cbf_modules method 
 #'
+#' This function was copied and adapted from the CEMiTool package.
+#' The visualization of networks in this function is derivative of the 
+#' intelectual work of CEMiTool's authors.
+#' 
 #' @param fc Object of class \code{fcoex}.
 #' @param n number of nodes to label
 #' @param min_elements Minimum number of elements in a module for it to be plotted. Defaults to 5.
@@ -175,7 +193,11 @@ setMethod("mod_colors", signature("fcoex"),
 #' Network visualization
 #'
 #' Creates a graph based on interactions provided
-#'
+#' This function was copied and adapted from the CEMiTool package.
+#' The visualization of networks in this function is derivative of the 
+#' intelectual work of CEMiTool's authors.
+#' 
+#' 
 #' @param adjacency_matrix An adajcency matrix from the \code{fcoex} object.
 #' @param n Number of genes to be shown
 #' @param color Color of the module to be plotted
@@ -183,6 +205,9 @@ setMethod("mod_colors", signature("fcoex"),
 #' @param ... Optional parameters.
 #' @return  A ggplot2 ('gg') object
 .plot_one_interaction <- function(adjacency_matrix, n, color, name) {
+  
+  # comments below were also retained from the orignal CEMiTool code
+  
   adj <- as.matrix(adjacency_matrix)
   ig_obj <- graph.adjacency(adj, weighted = TRUE, diag = FALSE)
   degrees <- igraph::degree(ig_obj, normalized = FALSE)
@@ -290,6 +315,11 @@ setMethod('show_net', signature('fcoex'),
 #' ORA visualization
 #'
 #' Creates a bar plot with the results of module overrepresentation analysis
+#' 
+#' This function was copied and adapted from the CEMiTool package.
+#' The visualization in this function is derivative of the 
+#' intelectual work of CEMiTool's authors.
+#' 
 #'
 #' @param fc Object of class \code{fcoex}.
 #' @param n number of enrichments to show
@@ -337,6 +367,10 @@ setMethod('plot_ora', signature('fcoex'),
 
 #' Retrieve fcoex ora plots
 #'
+#' This function was copied and adapted from the CEMiTool package.
+#' The visualization in this function is derivative of the 
+#' intelectual work of CEMiTool's authors.
+#' 
 #' @param fc Object of class \code{fcoex}.
 #' @return A plot corresponding to a fcoex analysis
 #' @examples 
@@ -357,6 +391,11 @@ setMethod('show_ora', signature('fcoex'),
 
 #' ORA visualization for one module
 #'
+#'
+#' This function was copied and adapted from the CEMiTool package.
+#' The visualization in this function is derivative of the 
+#' intelectual work of CEMiTool's authors.
+#' 
 #' @keywords internal
 #'
 #' @param es a data.frame from ora function containing only one module
@@ -374,6 +413,9 @@ plot_ora_single <-
            pv_cut = 0.05,
            graph_color = "#4169E1",
            title = "Over Representation Analysis") {
+    
+    # comments below were also retained from the orignal CEMiTool code
+    
     comsub <- function(x) {
       #split the first and last element by character
       d_x <- strsplit(x[c(1, length(x))], "")
@@ -450,6 +492,9 @@ plot_ora_single <-
 #' Save plots into the directory specified by the \code{directory} argument.
 #' Note: If no directory is specified, it will save to tempdir().
 #' A possible option is setting directory = "./Plots"
+#' 
+#' This function was modified from the CEMiTool package.
+#' Chunks of code were retained "as is"
 #'
 #' @param fc Object of class \code{fcoex}.
 #' @param name The name of the file to be saved.
@@ -489,7 +534,7 @@ setMethod('save_plots', signature('fcoex'),
               length(x) >= 1, plots)
             if (length(plots) < 2) {
               message(
-                "Some plots have not been defined. Please run the appropriate plot functions. Saving available plots."
+                "Saving available plots."
               )
             }
             lapply(names(plots), function(pl) {

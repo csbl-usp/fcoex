@@ -1,3 +1,10 @@
+# Many parts of this code were directly adapted from the
+# CEMiTool package. This include chunks of copied and pasted code
+# located inside the source code for CEMiTool functions. 
+# Functions that contained adapted code were explicit denoted.
+
+
+
 #' @importFrom grDevices rainbow dev.off pdf
 #' @importFrom utils write.table head
 #' @importFrom stats cutree dist hclust
@@ -371,6 +378,8 @@ setMethod("find_cbf_modules", signature("fcoex"),
 
 
 #' Get the number of modules in a fcoex object
+#' 
+#' This function was copied and adapted from the CEMiTool package.
 #'
 #' @param fc Object of class \code{fcoex}
 #'
@@ -402,6 +411,7 @@ setMethod('nmodules', signature('fcoex'),
 
 
 #' Get the number of genes in modules in a fcoex object
+#' This function was copied and adapted from the CEMiTool package.
 #'
 #' @param fc Object of class \code{fcoex}
 #' @param module Default is NULL. If a character string designating a 
@@ -442,6 +452,8 @@ setMethod('mod_gene_num', signature(fc = 'fcoex'),
 
 #' Get module names in a fcoex object
 #'
+#' This function was copied and adapted from the CEMiTool package.
+#' 
 #' @param fc Object of class \code{fcoex}
 #' @param include_NC Logical. Whether or not to include "Not.Correlated"
 #' module. Defaults to \code{TRUE}.
@@ -470,6 +482,8 @@ setMethod('mod_names', signature(fc = 'fcoex'),
 
 
 #' Get the module genes in a fcoex object
+#' 
+#' This function was copied and adapted from the CEMiTool package.
 #'
 #' @param fc Object of class \code{fcoex}
 #' @param module A character string with the name of the module of which
@@ -554,6 +568,9 @@ setMethod('show', signature(object = 'fcoex'),
 
 #' # Run module overrepresentation analysis
 #'
+#' This function was modified from the CEMiTool package.
+#' Chunks of code were retained "as is"
+#' 
 #' @param fc A fcoex object.
 #' @param gmt A gmt file with gene sets for ora analysis
 #' @param verbose Controls verbosity. Defaults to FALSE. 
@@ -595,7 +612,7 @@ setMethod('mod_ora', signature('fcoex'),
             }
             allgenes <- unique(gmt_df[, "gene"])
             if (is.null(fc@module_list)) {
-              warning("No modules in fcoex object! Did you run find_modules()?")
+              warning("No modules in fcoex object! Did you run find_cbf_modules()?")
               return(fc)
             }
             mods <- fc@module_list
@@ -635,6 +652,8 @@ setMethod('mod_ora', signature('fcoex'),
 #' for any given pathway. The BgRatio column shows the proportion of genes 
 #' in a given pathway out of all the genes in the gmt file. For more details,
 #' please refer to the \code{clusterProfiler} package documentation.
+#' 
+#' This function was ipsis litteris adapted from the CEMiTool package.
 #'
 #' @return Object of class \code{data.frame} with ORA data
 #' @examples 

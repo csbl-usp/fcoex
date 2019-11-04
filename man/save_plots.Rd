@@ -27,6 +27,9 @@ A pdf file or files with the desired plot(s)
 Save plots into the directory specified by the \code{directory} argument.
 Note: If no directory is specified, it will save to tempdir().
 A possible option is setting directory = "./Plots"
+
+This function was modified from the CEMiTool package.
+Chunks of code were retained "as is"
 }
 \examples{
 data(fc)

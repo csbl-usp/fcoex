@@ -22,4 +22,7 @@ A ggplot2 ('gg') object
 }
 \description{
 Creates a graph based on interactions provided
+This function was copied and adapted from the CEMiTool package.
+The visualization of networks in this function is derivative of the 
+intelectual work of CEMiTool's authors.
 }

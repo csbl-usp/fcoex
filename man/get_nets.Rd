@@ -26,6 +26,11 @@ Object of class \code{fcoex} with profile plots
 Creates network visualizations based on the adjacency matrix
 obtained with the find_cbf_modules method
 }
+\details{
+This function was copied and adapted from the CEMiTool package.
+The visualization of networks in this function is derivative of the 
+intelectual work of CEMiTool's authors.
+}
 \examples{
 library(SingleCellExperiment) 
 data("mini_pbmc3k")
