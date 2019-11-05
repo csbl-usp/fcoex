@@ -21,7 +21,12 @@ BiocManager::install("fcoex")
 
 ```
 
-It is also possible to install from source code using devtools
+It is also possible to install the current, development version from source code using devtools.
+
+Modifications from version on Bioconductor:
+
+* fc@adjacency returned previously a trimmed version of the adjacency matrix. Now it returns a full, weighted adjacency matrix.
+* fc@adjacency_trimmed now returns the trimmed adjacency matrix.
 
 ```
 
