@@ -6,6 +6,8 @@ The fcoex package implements an easy-to use interface to co-expression analysis 
 
 ## Installing the package
 
+### Bioconductor
+
 fcoex is now on Bioconductor (https://bioconductor.org/packages/fcoex/)
 
 To install it, just run:`
@@ -21,6 +23,7 @@ BiocManager::install("fcoex")
 
 ```
 
+### Development version
 It is also possible to install the current, development version from source code using devtools.
 
 Modifications from version on Bioconductor:
