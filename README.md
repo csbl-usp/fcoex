@@ -34,8 +34,7 @@ Modifications from version on Bioconductor:
 ```
 
 install.packages(devtools)
-devtools::install_github("csbl-usp/fcoex")
-
+devtools::install_github(repo = "csbl-usp/fcoex", ref="devel")
 ```
 
 
