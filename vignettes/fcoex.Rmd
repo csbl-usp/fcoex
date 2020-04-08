@@ -115,6 +115,7 @@ It is likely that some modules will not have any enrichment, leading to messages
 
 ```{r Running ORA analysis, warning=FALSE}
 gmt_fname <- system.file("extdata", "pathways.gmt", package = "CEMiTool")
+
 gmt_in <- pathwayPCA::read_gmt(gmt_fname)
 fc <- mod_ora(fc, gmt_in)
 fc <- plot_ora(fc)
@@ -291,7 +292,7 @@ Idents(pbmc_small ) <-   fc@mod_idents[[i]]
 # By removing this parameter, you can potentially expand the list that was retrieved originally by fcoex
 
 # Run only for module genes:
-module_genes_in_clusters <- FindAllMarkers(pbmc_small, logfc.threshold = 1, only.pos = T, features = fc@module_list[[i]] )
+module_genes_in_clusters <- FindAllMarkers(pbmc_small, logfc.threshold = 1, only.pos = TRUE, features = fc@module_list[[i]] )
 
 if("HN" %in% module_genes_in_clusters$cluster){
 module_genes_in_clusters$module = i

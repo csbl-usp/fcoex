@@ -4,7 +4,9 @@
 \name{fc}
 \alias{fc}
 \title{Example fcoex object}
-\format{An object of class \code{fcoex}}
+\format{
+An object of class \code{fcoex}
+}
 \usage{
 fc
 }

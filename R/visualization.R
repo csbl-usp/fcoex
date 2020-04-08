@@ -21,70 +21,6 @@
 NULL
 
 
-#' Network visualization
-#'
-#' Creates a graph based on interactions provided
-#'
-#' This function was copied and adapted from the CEMiTool package.
-#' The visualization of networks in this function is derivative of the 
-#' intelectual work of CEMiTool's authors.
-#'
-#'
-#' @param fc Object of class \code{fcoex}.
-#' @param n number of nodes to label
-#' @param min_elements Minimum number of elements in a module for it to be plotted. Defaults to 5.
-#' @param ... Optional parameters.
-#' @examples
-#' library(SingleCellExperiment)  
-#' data("mini_pbmc3k")
-#' targets <- colData(mini_pbmc3k)$clusters
-#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
-#' fc <- new_fcoex(exprs, targets)
-#' fc <- discretize(fc)
-#' fc <- find_cbf_modules(fc)
-#' fc <- plot_interactions(fc)
-#' @return Object of class \code{fcoex} with profile plots
-#'
-#' @rdname plot_interactions
-#' @export
-setGeneric('plot_interactions', function(fc,
-                                         n = 10,
-                                         min_elements = 5,
-                                         ...) {
-  standardGeneric('plot_interactions')
-})
-
-#' @rdname plot_interactions
-setMethod('plot_interactions', signature('fcoex'),
-          function(fc,
-                   n = 10,
-                   min_elements = 5,
-                   ...) {
-            if (length(fc@module_list) == 0) {
-              stop("No modules in fcoex object! Did you run find_cbf_modules()?")
-            }
-            #fc <- get_args(fc, vars=mget(ls()))
-            fc <- mod_colors(fc)
-            module_cols <- fc@mod_colors
-            mod_names <- names(fc@module_list)
-            adjacency_full <- fc@adjacency
-            adj <- fc@adjacency[, -1]
-            rownames(adj) <- colnames(adj)
-            res <- lapply(mod_names, function(name) {
-              members_of_module <- fc@module_list[[name]]
-              if (length(members_of_module) >= min_elements) {
-                adj <- adj[members_of_module, members_of_module]
-                adj <- as.matrix(adj)
-                .plot_one_interaction(adj,
-                                      n = n,
-                                      color = module_cols[name],
-                                      name = name)
-              }
-            })
-            names(res) <- mod_names
-            fc@coex_network_plot <- res[mod_names]
-            return(fc)
-          })
 
 #' Network visualization
 #'
@@ -203,6 +139,7 @@ setMethod("mod_colors", signature("fcoex"),
 #' @param color Color of the module to be plotted
 #' @param name Name of the module to be plotted
 #' @param ... Optional parameters.
+#' @rdname plot_one_interaction
 #' @return  A ggplot2 ('gg') object
 .plot_one_interaction <- function(adjacency_matrix, n, color, name) {
   

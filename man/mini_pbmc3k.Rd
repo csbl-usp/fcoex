@@ -4,7 +4,9 @@
 \name{mini_pbmc3k}
 \alias{mini_pbmc3k}
 \title{Processed subset of the pbmc3k dataset from PBMC genomics}
-\format{An object of class \code{SingleCellExperiment}}
+\format{
+An object of class \code{SingleCellExperiment}
+}
 \usage{
 data(mini_pbmc3k)
 }
