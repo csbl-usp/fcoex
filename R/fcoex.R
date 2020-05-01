@@ -1,6 +1,6 @@
 # Many parts of this code were directly adapted from the
 # CEMiTool package. This include chunks of copied and pasted code
-# located inside the source code for CEMiTool functions. 
+# located inside the source code for CEMiTool functions.
 # Functions that contained adapted code were explicit denoted.
 
 
@@ -20,27 +20,27 @@ setOldClass('gtable')
 
 #' An S4 class to represent the fcoex analysis.
 #'
-#' @slot expression Normalized gene expression table from 
+#' @slot expression Normalized gene expression table from
 #' single-cells \code{data.frame}.
-#' @slot discretized_expression Discretized gene expression table from 
+#' @slot discretized_expression Discretized gene expression table from
 #' single-cells \code{data.frame}.
 #' @slot target Original target classes for the cells (\code{factor}).
-#' @slot selected_genes Character \code{vector} containing the names of 
+#' @slot selected_genes Character \code{vector} containing the names of
 #' genes selected for analysis
 #' @slot module_list \code{list} containing genes in each module.
-#' @slot adjacency \code{data.frame} containing the adjacency table for 
+#' @slot adjacency \code{data.frame} containing the adjacency table for
 #' the selected genes before trimming.
-#' @slot adjacency_trimmed \code{data.frame} containing the adjacency table for 
-#' the selected genes after trimming. 
+#' @slot adjacency_trimmed \code{data.frame} containing the adjacency table for
+#' the selected genes after trimming.
 #' @slot coex_network_plot list of ggplot graphs with module gene interactions.
-#' @slot new_clusters \code{list} containing gene interactions present in 
+#' @slot new_clusters \code{list} containing gene interactions present in
 #' modules.
-#' @slot mod_colors character \code{vector} containing colors associated with 
+#' @slot mod_colors character \code{vector} containing colors associated with
 #' each network module.
 #' @slot ora Over-representation analysis results \code{data.frame}.
-#' @slot barplot_ora list of ggplot graphs with over-representation analysis 
+#' @slot barplot_ora list of ggplot graphs with over-representation analysis
 #' results per module.
-#' @slot mod_idents Identities of cells based on each co-expression module. 
+#' @slot mod_idents Identities of cells based on each co-expression module.
 #' Determined by the "recluster" method
 #' @slot parameters \code{list} containing analysis parameters.
 setClass(
@@ -85,49 +85,51 @@ setMethod("initialize", signature = "fcoex",
 #' fc <- new_fcoex(exprs, targets)
 
 #' @export
-new_fcoex <- function(expression = data.frame(), target = vector()) {
-  fc <- new("fcoex", expression = expression, target = target)
-  msg <- "Created new fcoex object."
-  message(msg)
-  return(fc)
-}
+new_fcoex <-
+  function(expression = data.frame(),
+           target = vector()) {
+    fc <- new("fcoex", expression = expression, target = target)
+    msg <- "Created new fcoex object."
+    message(msg)
+    return(fc)
+  }
 
 #' Set the discretized expression attribute
 #' Uses the discretize_exprs function of the FCBF package
 #'
 #' @param fc Object of class \code{fcoex}
-#' @param method Method applied to all genes for discretization. 
+#' @param method Method applied to all genes for discretization.
 #' Methods available: "varying_width"
 #'  (Binarization modulated by the number_of_bins param),
 #' "mean" (Split in ON/OFF by each gene mean expression),
 #' "median" (Split in ON/OFF by each gene median expression),
-#' "mean_sd"(Split in low/medium/high by each assigning "medium" to 
+#' "mean_sd"(Split in low/medium/high by each assigning "medium" to
 #' the interval between mean +- standard_deviation.
-#' Modulated by the alpha param, which enlarges (>1) or shrinks (<1) the 
+#' Modulated by the alpha param, which enlarges (>1) or shrinks (<1) the
 #' "medium" interval. ),
 #' ),
-#' "kmeans"(Split in different groups by the kmeans algorithm. As many 
+#' "kmeans"(Split in different groups by the kmeans algorithm. As many
 #' groups as specified by the centers param) and
-#' "min_max_\%" (Similat to the "varying width", a binarization threshold 
+#' "min_max_\%" (Similat to the "varying width", a binarization threshold
 #' in a % of the min-max range is set. (minmax\% param)),
-#' "GMM" (A Gaussian Mixture Model as implemented by the package mclust, 
+#' "GMM" (A Gaussian Mixture Model as implemented by the package mclust,
 #' trying to fit 2:5 Gaussians). Default is "varying_width"
-#' 
+#'
 #' @param number_of_bins Number of equal-width bins for discretization.
 #' Note: it is a binary discretization, with the
-#' first bin becoming one class ('low') and the other bins, another class 
+#' first bin becoming one class ('low') and the other bins, another class
 #' ('high').#' Defaults to 4.
-#' @param alpha Modulator for the "mean_sd" method.Enlarges (>1) or 
+#' @param alpha Modulator for the "mean_sd" method.Enlarges (>1) or
 #' shrinks (<1) the "medium" interval. Defaults to 1.
 #' @param centers Modulator for the "kmeans" method. Defaults to 3.
-#' @param min_max_cutoff <- Modulator for the "min_max_\%" method. 
+#' @param min_max_cutoff <- Modulator for the "min_max_\%" method.
 #' Defaults to 0.25.
-#' @param show_pb Enables a progress bar for the discretization. 
+#' @param show_pb Enables a progress bar for the discretization.
 #' Defaults to TRUE.
-#' @return A data frame with the discretized features in the same 
+#' @return A data frame with the discretized features in the same
 #' order as previously
-#' @examples 
-#' library(SingleCellExperiment) 
+#' @examples
+#' library(SingleCellExperiment)
 #' data("mini_pbmc3k")
 #' targets <- colData(mini_pbmc3k)$clusters
 #' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
@@ -136,7 +138,8 @@ new_fcoex <- function(expression = data.frame(), target = vector()) {
 #' @import FCBF
 #' @rdname discretize
 #' @export
-setGeneric("discretize", function(fc, number_of_bins = 4,
+setGeneric("discretize", function(fc,
+                                  number_of_bins = 4,
                                   method = "varying_width",
                                   alpha = 1,
                                   centers = 3,
@@ -171,30 +174,31 @@ setMethod("discretize", signature("fcoex"),
           })
 
 
-#' .get_correlates 
-#' 
+#' .get_correlates
+#'
 #' auxiliary function for find_cbf_modules
 #' @param i A gene to be correlated
-#' @param su_i_j_matrix the dataframe with the correlations to be updated
-#' @param discretized_exprs the dataframe with discretized expression 
+#' @param gene_by_gene_su_correlation the dataframe with the correlations to be updated
+#' @param discretized_exprs the dataframe with discretized expression
 #' to extract a gene
-#' @param exprs_small the dataframe to after the filtering step
-#' @return the updated column of the su_i_j_matrix
+#' @param expression_table_only_with_genes_with_high_su the dataframe to after the filtering step
+#' @return the updated column of the gene_by_gene_su_correlation
 .get_correlates <- function(i,
-           su_i_j_matrix,
-           discretized_exprs,
-           exprs_small) {
-    gene_i <- as.factor(discretized_exprs[i,])
-    gene_i_correlates <-
-      FCBF::get_su_for_feature_table_and_vector(feature_table = exprs_small, target_vector = as.factor(exprs_small[i,]))
-    gene_i_correlates$gene <-
-      gsub('\\.', '-', rownames(gene_i_correlates))
-    gene_i_correlates <-
-      gene_i_correlates[match(su_i_j_matrix$genes, gene_i_correlates$gene), ]
-    colnames(gene_i_correlates)[1] <- i
-    su_i_j_matrix[, i] <- gene_i_correlates[, 1]
-    su_i_j_matrix[, i]
-  }
+                            gene_by_gene_su_correlation,
+                            discretized_exprs,
+                            expression_table_only_with_genes_with_high_su) {
+  gene_i <- as.factor(discretized_exprs[i, ])
+  gene_i_correlates <-
+    FCBF::get_su_for_feature_table_and_vector(feature_table = expression_table_only_with_genes_with_high_su,
+                                              target_vector = as.factor(expression_table_only_with_genes_with_high_su[i, ]))
+  gene_i_correlates$gene <-
+    gsub('\\.', '-', rownames(gene_i_correlates))
+  gene_i_correlates <-
+    gene_i_correlates[match(gene_by_gene_su_correlation$genes, gene_i_correlates$gene),]
+  colnames(gene_i_correlates)[1] <- i
+  gene_by_gene_su_correlation[, i] <- gene_i_correlates[, 1]
+  gene_by_gene_su_correlation[, i]
+}
 
 #' find_cbf_modules
 #'
@@ -205,24 +209,24 @@ setMethod("discretize", signature("fcoex"),
 #'
 #' and
 #'
-#' 2 - Determine soft thresholds for coexpression to genes predominantly 
+#' 2 - Determine soft thresholds for coexpression to genes predominantly
 #' correlated to a class.
 #'
 #' @param fc A fcoex object containing a discretized expression table
-#' @param FCBF_threshold A threshold for the minimum correlation (as 
+#' @param FCBF_threshold A threshold for the minimum correlation (as
 #' determined by symettrical uncertainty)
-#' between each variable and the class used for wrapped FCBF function. 
+#' between each variable and the class used for wrapped FCBF function.
 #' Defaults to 0.1.
-#' @param is_parallel Uses package parallel to paralleliza calculations. 
+#' @param is_parallel Uses package parallel to paralleliza calculations.
 #' Defaults to FALSE.
 #' @param verbose Adds verbosity. Defaults to TRUE
-#' @param n_genes_selected_in_first_step Sets the number of genes to be selected in the first 
-#' part of the algorithm. If left unchanged, it defaults to NULL and the 
-#' minimum_su parameter is used. 
+#' @param n_genes_selected_in_first_step Sets the number of genes to be selected in the first
+#' part of the algorithm. If left unchanged, it defaults to NULL and the
+#' minimum_su parameter is used.
 #' Caution: it overrides the minimum_su parameter altogether.
-#' 
-#' @examples 
-#' library(SingleCellExperiment) 
+#'
+#' @examples
+#' library(SingleCellExperiment)
 #' data("mini_pbmc3k")
 #' targets <- colData(mini_pbmc3k)$clusters
 #' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
@@ -236,7 +240,7 @@ setMethod("discretize", signature("fcoex"),
 #' @import FCBF
 #' @export
 #' @rdname find_cbf_modules
-setGeneric("find_cbf_modules", function(fc,                                                           
+setGeneric("find_cbf_modules", function(fc,
                                         n_genes_selected_in_first_step = NULL,
                                         FCBF_threshold = 0.1,
                                         verbose = TRUE,
@@ -245,117 +249,139 @@ setGeneric("find_cbf_modules", function(fc,
 })
 
 #' @rdname find_cbf_modules
-setMethod("find_cbf_modules", signature("fcoex"), 
+setMethod("find_cbf_modules", signature("fcoex"),
           function(fc,
-                                                    n_genes_selected_in_first_step = NULL,
-                                                    FCBF_threshold = 0.1,
-                                                    verbose = TRUE,
-                                                    is_parallel = FALSE) {
-  
-  discretized_exprs <- fc@discretized_expression
-  target <- fc@target
-  
-  # get the SU scores for each gene
-  message('Getting SU scores')
-  su_to_class <- FCBF::get_su_for_feature_table_and_vector(discretized_exprs, target)
-  su_to_class$gene <- gsub('\\.', '-', rownames(su_to_class))
-  colnames(su_to_class)[1] <- 'SU'
-  
-  
-  # Run FCBF with the parameters of the function. 
-  message('Running FCBF to find module headers')
-  fcbf_filtered <-
-    FCBF::fcbf(discretized_exprs,
-               target,
-               n_genes_selected_in_first_step,
-               minimum_su = FCBF_threshold,
-               verbose = verbose)
-  
-  fcbf_filtered$gene <- rownames(fcbf_filtered)
-  # R does not like points. Subs for -.
-  FCBF_genes <- gsub('\\.', '-', fcbf_filtered$gene)
-  if (length(n_genes_selected_in_first_step)) {
-    FCBF_threshold <- su_to_class$SU[n_genes_selected_in_first_step]
-  }
-  
-  # get only those with an SU score above a threshold
-  SU_threshold <- FCBF_threshold
-  su_to_class_small <-
-    su_to_class[su_to_class[1] > SU_threshold, ]
-  
-  SU_genes <- gsub('\\.', '-', su_to_class_small[, 2])
-  
-  # Save the selected SU_genes  in the fc object
-  fc@selected_genes <- SU_genes
-  
-  exprs_small <- discretized_exprs[SU_genes , ]
-  
+                   n_genes_selected_in_first_step = NULL,
+                   FCBF_threshold = 0.1,
+                   verbose = TRUE,
+                   is_parallel = FALSE) {
+            
+            discretized_exprs <- fc@discretized_expression
+            target <- fc@target
+            
+            first_name_in_rows = rownames(discretized_exprs)[1] 
+            if (first_name_in_rows == "1"){
+              stop("The discretized dataframe does not have rownames. That makes fcoex sad! Please, rerun the discretize(fc) method for a expression table with rownames.")
+            }
+            
+            if (any(grepl(" ", rownames(discretized_exprs)))){
+              stop("Oops, there are spaces in at least one of your rownames. That makes fcoex sad! Please, rerun the discretize(fc) method for a expression table with rownames without space.")
+            }
+            
+            # get the SU scores for each gene
+            message('Getting SU scores')
+            su_to_class <-
+              FCBF::get_su_for_feature_table_and_vector(discretized_exprs, target)
+            su_to_class$gene <- gsub('\\.', '-', rownames(su_to_class))
+            colnames(su_to_class)[1] <- 'SU'
+            
+            
+            # Run FCBF with the parameters of the function.
+            message('Running FCBF to find module headers')
+            output_of_fcbf_filter <-
+              FCBF::fcbf(
+                discretized_exprs,
+                target,
+                n_genes_selected_in_first_step,
+                minimum_su = FCBF_threshold,
+                verbose = verbose
+              )
+            
+            output_of_fcbf_filter$gene <- rownames(output_of_fcbf_filter)
+            
+            # R does not like points. Subs for -.
+            output_of_fcbf_filter$gene <- gsub('\\.', '-', output_of_fcbf_filter$gene)
+            
+            genes_from_fcbf_filter = output_of_fcbf_filter$gene
+            
+            
+            # Heuristic to get the minimum_su for the algorithm from a user input of number of genes
+            
+            if(length(n_genes_selected_in_first_step)) {
+              minimum_su_for_the_fcbf_algorithm <- su_to_class$SU[n_genes_selected_in_first_step]
+            }
+            
 
-  # get and adjacency matrix for gene to gene correlation
-  su_i_j_matrix <- data.frame(genes =  SU_genes)
-  message('Calculating adjacency matrix')
-  
-  if (!is_parallel) {
-    pb_findclusters <- progress_bar$new(total = length(SU_genes),
-                                        format =   "[:bar] :percent eta: 
-                                        :eta")
-    # this can surely be improved for speed.
-    for (i in SU_genes) {
-      pb_findclusters$tick()
-      gene_i <- as.factor(discretized_exprs[i,])
-      gene_i_correlates <-
-        FCBF::get_su_for_feature_table_and_vector(feature_table = exprs_small, target_vector = as.factor(exprs_small[i,]))
-      gene_i_correlates$gene <-
-        gsub('\\.', '-', rownames(gene_i_correlates))
-      gene_i_correlates <-
-        gene_i_correlates[match(su_i_j_matrix$genes, gene_i_correlates$gene), ]
-      colnames(gene_i_correlates)[1] <- i
-      su_i_j_matrix[, i] <- gene_i_correlates[, 1]
-      
-    }
-    su_i_j_matrix <- su_i_j_matrix[, -1]
-
-  }  else {
-    cl <- detectCores() - 2
-    bla <- mclapply(SU_genes, function(i) {
-      .get_correlates(i, su_i_j_matrix, discretized_exprs, exprs_small)
-    }, mc.cores = cl)
-    su_i_j_matrix <- as.data.frame(bla)
-    rownames(su_i_j_matrix) <- su_to_class_small$gene
-    colnames(su_i_j_matrix) <- su_to_class_small$gene
-  }
-  
-  filtered_su_i_j_matrix <- data.frame(genes =  SU_genes)
-  
-  message('Trimming and getting modules from adjacency matrix')
-  for (i in colnames(su_i_j_matrix)) {
-    tf_vector <-
-      su_i_j_matrix[, i] > su_to_class$SU[seq_along(su_to_class_small$gene)]
-    filtered_su_i_j_matrix[, i] <- su_i_j_matrix[, i] * tf_vector
-  }
-  
-  
-  list_of_fcbf_modules <- list()
-  for (seed in FCBF_genes) {
-    module_members <-
-      as.character(filtered_su_i_j_matrix$genes[filtered_su_i_j_matrix[, seed] >
-                                                  0])
-    module_members <- module_members[!is.na(module_members)]
-    if (length(module_members) > 1) {
-      list_of_fcbf_modules[[seed]] <- module_members
-    }
-  }
-  
-  fc@adjacency <- su_i_j_matrix
-  fc@adjacency_trimmed <- filtered_su_i_j_matrix
-  fc@module_list <- list_of_fcbf_modules
-  return(fc)
-})
+            su_to_class_higher_than_minimum_su <-
+              su_to_class[su_to_class[1] > minimum_su_for_the_fcbf_algorithm,]
+            
+            genes_from_su_ranking <- gsub('\\.', '-', su_to_class_higher_than_minimum_su[, 2])
+            
+            # Save the selected genes_from_su_ranking  in the fc object
+            fc@selected_genes <- genes_from_su_ranking
+            
+            expression_table_only_with_genes_with_high_su <- discretized_exprs[genes_from_su_ranking ,]
+            
+            
+            # get and adjacency matrix for gene to gene correlation
+            gene_by_gene_su_correlation <- data.frame(genes =  genes_from_su_ranking)
+            
+            message('Calculating adjacency matrix')
+            
+            if (!is_parallel) {
+              pb_findclusters <- progress_bar$new(total = length(genes_from_su_ranking),
+                                                  format =   "[:bar] :percent eta:
+                                                  :eta")
+              # this can surely be improved for speed.
+              for (i in genes_from_su_ranking) {
+                pb_findclusters$tick()
+                gene_i <- as.factor(discretized_exprs[i, ])
+                gene_i_correlates <-
+                  FCBF::get_su_for_feature_table_and_vector(feature_table = expression_table_only_with_genes_with_high_su,
+                                                            target_vector = as.factor(expression_table_only_with_genes_with_high_su[i, ]))
+                gene_i_correlates$gene <-
+                  gsub('\\.', '-', rownames(gene_i_correlates))
+                gene_i_correlates <-
+                  gene_i_correlates[match(gene_by_gene_su_correlation$genes, gene_i_correlates$gene),]
+                colnames(gene_i_correlates)[1] <- i
+                gene_by_gene_su_correlation[, i] <- gene_i_correlates[, 1]
+                
+              }
+              gene_by_gene_su_correlation <- gene_by_gene_su_correlation[,-1]
+              
+            }  else {
+              cl <- detectCores() - 2
+              bla <- mclapply(genes_from_su_ranking, function(i) {
+                .get_correlates(i, gene_by_gene_su_correlation, discretized_exprs, expression_table_only_with_genes_with_high_su)
+              }, mc.cores = cl)
+              gene_by_gene_su_correlation <- as.data.frame(bla)
+              rownames(gene_by_gene_su_correlation) <- su_to_class_higher_than_minimum_su$gene
+              colnames(gene_by_gene_su_correlation) <- su_to_class_higher_than_minimum_su$gene
+            }
+            
+            
+            message('Trimming and getting modules from adjacency matrix')
+            
+            filtered_gene_by_gene_su_correlation <- data.frame(genes =  genes_from_su_ranking)
+            
+            for (i in colnames(gene_by_gene_su_correlation)) {
+              tf_vector <-
+                gene_by_gene_su_correlation[, i] > su_to_class$SU[seq_along(su_to_class_higher_than_minimum_su$gene)]
+              filtered_gene_by_gene_su_correlation[, i] <- gene_by_gene_su_correlation[, i] * tf_vector
+            }
+            
+            
+            list_of_fcbf_modules <- list()
+            for (seed in genes_from_fcbf_filter) {
+              module_members <-
+                as.character(filtered_gene_by_gene_su_correlation$genes[filtered_gene_by_gene_su_correlation[, seed] >
+                                                            0])
+              module_members <- module_members[!is.na(module_members)]
+              if (length(module_members) > 1) {
+                list_of_fcbf_modules[[seed]] <- module_members
+              }
+            }
+            
+            fc@adjacency <- gene_by_gene_su_correlation
+            fc@adjacency_trimmed <- filtered_gene_by_gene_su_correlation
+            fc@module_list <- list_of_fcbf_modules
+            return(fc)
+          })
 
 
 
 #' Get the number of modules in a fcoex object
-#' 
+#'
 #' This function was copied and adapted from the CEMiTool package.
 #'
 #' @param fc Object of class \code{fcoex}
@@ -363,7 +389,7 @@ setMethod("find_cbf_modules", signature("fcoex"),
 #' @return number of modules
 #'
 #' @rdname nmodules
-#' @examples 
+#' @examples
 #' data("fc")
 #' nmodules(fc)
 #'
@@ -391,9 +417,9 @@ setMethod('nmodules', signature('fcoex'),
 #' This function was copied and adapted from the CEMiTool package.
 #'
 #' @param fc Object of class \code{fcoex}
-#' @param module Default is NULL. If a character string designating a 
+#' @param module Default is NULL. If a character string designating a
 #' module is#' given, the number of genes in that module is returned instead.
-#' @examples 
+#' @examples
 #' data("fc")
 #' mod_gene_num(fc, module = "TYROBP")
 #' @return The number of genes in module(s)
@@ -417,12 +443,12 @@ setMethod('mod_gene_num', signature(fc = 'fcoex'),
             if (!is.null(module)) {
               mod_genes <- fc@module_list[[module]]
               return(mod_genes)
-            } 
+            }
             
             if (is.null(module)) {
               stop("No modules selected!")
             }
-
+            
           })
 
 
@@ -430,7 +456,7 @@ setMethod('mod_gene_num', signature(fc = 'fcoex'),
 #' Get module names in a fcoex object
 #'
 #' This function was copied and adapted from the CEMiTool package.
-#' 
+#'
 #' @param fc Object of class \code{fcoex}
 #' @param include_NC Logical. Whether or not to include "Not.Correlated"
 #' module. Defaults to \code{TRUE}.
@@ -459,7 +485,7 @@ setMethod('mod_names', signature(fc = 'fcoex'),
 
 
 #' Get the module genes in a fcoex object
-#' 
+#'
 #' This function was copied and adapted from the CEMiTool package.
 #'
 #' @param fc Object of class \code{fcoex}
@@ -506,14 +532,14 @@ setMethod('module_genes', signature(fc = 'fcoex'),
 #' @param object Object of class fcoex
 #'
 #' @return A fcoex object.
-#' @examples 
+#' @examples
 #' data("fc")
 #' fc
 #' @export
 setMethod('show', signature(object = 'fcoex'),
           function(object) {
             cat("fcoex Object\n")
-            cat("- Number of modules:", suppressWarnings(nmodules(object)), 
+            cat("- Number of modules:", suppressWarnings(nmodules(object)),
                 "\n")
             cat("- Module headers: \n")
             if (length(object@module_list) == 0) {
@@ -547,11 +573,11 @@ setMethod('show', signature(object = 'fcoex'),
 #'
 #' This function was modified from the CEMiTool package.
 #' Chunks of code were retained "as is"
-#' 
+#'
 #' @param fc A fcoex object.
 #' @param gmt A gmt file with gene sets for ora analysis
-#' @param verbose Controls verbosity. Defaults to FALSE. 
-#' @examples 
+#' @param verbose Controls verbosity. Defaults to FALSE.
+#' @examples
 #' data("fc")
 #' gmt_fname <- system.file("extdata", "pathways.gmt", package = "CEMiTool")
 #' gmt_in <- pathwayPCA::read_gmt(gmt_fname)
@@ -568,19 +594,23 @@ setMethod('mod_ora', signature('fcoex'),
           function(fc, gmt, verbose = FALSE) {
             #fc <- get_args(fc, vars=mget(ls()))
             if (!is(gmt, "pathwayCollection")) {
-              stop("The gmt object must be loaded via pathwayPCA::read_gmt and be a pathwayCollectionobject")
+              stop(
+                "The gmt object must be loaded via pathwayPCA::read_gmt and be a pathwayCollectionobject"
+              )
             }
-          
+            
             pathwayPCA_gmt <- gmt
             gmt_df <- pathwayPCA_gmt$pathways
-
-            gmt_df <- as.data.frame(unlist(gmt_df), use.names = TRUE)
-            pathway_sizes <- unlist(lapply(pathwayPCA_gmt$pathways, length))
+            
+            gmt_df <-
+              as.data.frame(unlist(gmt_df), use.names = TRUE)
+            pathway_sizes <-
+              unlist(lapply(pathwayPCA_gmt$pathways, length))
             colnames(gmt_df) <- "gene"
             gmt_df$term <- rep(pathwayPCA_gmt$TERMS, pathway_sizes)
-
             
-            gmt_df<-gmt_df[,c("term","gene")]
+            
+            gmt_df <- gmt_df[, c("term", "gene")]
             
             
             if (verbose) {
@@ -620,20 +650,20 @@ setMethod('mod_ora', signature('fcoex'),
 #'
 #' @param fc Object of class \code{fcoex}
 #'
-#' @details This function returns the results of the \code{mod_ora} function 
-#' on the \code{fcoex} object. The ID column corresponds to pathways in 
-#' the gmt file for which  genes in the modules were enriched. The Count 
-#' column shows the number of genes in the module that are enriched for each 
+#' @details This function returns the results of the \code{mod_ora} function
+#' on the \code{fcoex} object. The ID column corresponds to pathways in
+#' the gmt file for which  genes in the modules were enriched. The Count
+#' column shows the number of genes in the module that are enriched for each
 #' pathway. The GeneRatio column shows the proportion of  genes in the module
-#' enriched for a given pathway out of all the genes in the module enriched 
-#' for any given pathway. The BgRatio column shows the proportion of genes 
+#' enriched for a given pathway out of all the genes in the module enriched
+#' for any given pathway. The BgRatio column shows the proportion of genes
 #' in a given pathway out of all the genes in the gmt file. For more details,
 #' please refer to the \code{clusterProfiler} package documentation.
-#' 
+#'
 #' This function was ipsis litteris adapted from the CEMiTool package.
 #'
 #' @return Object of class \code{data.frame} with ORA data
-#' @examples 
+#' @examples
 #' data("fc")
 #' ora_data(fc)
 #' @references Guangchuang Yu, Li-Gen Wang, Yanyan Han, Qing-Yu He. clusterProfiler:
@@ -661,12 +691,13 @@ setMethod("ora_data", signature("fcoex"),
 #' @param k desired number of clustes. Defaults to 2.
 #' @param verbose Adds verbosity, defaults to TRUE.
 #' @return Object of class \code{data.frame} with new clusters
-#' @examples 
+#' @examples
 #' data("fc")
 #' fc <- recluster(fc)
 #' @export
 #' @rdname recluster
-setGeneric("recluster", function(fc, hclust_method = "ward.D2",
+setGeneric("recluster", function(fc,
+                                 hclust_method = "ward.D2",
                                  dist_method = 'manhattan',
                                  k = 2,
                                  verbose = TRUE) {
@@ -680,35 +711,36 @@ setMethod("recluster", signature("fcoex"),
                    k = 2,
                    verbose = TRUE) {
             mod_idents <- list()
-  
-            if (verbose){
-              message("Detecting clusters for the following modules: ")   
+            
+            if (verbose) {
+              message("Detecting clusters for the following modules: ")
             }
-
+            
             for (i in names(fc@module_list)) {
-              if (verbose){
-                message(print(i))   
+              if (verbose) {
+                message(print(i))
               }
               expression_table <-
-                fc@expression[fc@module_list[[i]], ]
+                fc@expression[fc@module_list[[i]],]
               d <-
                 dist(t(as.matrix(expression_table)), method = dist_method)
               hc <- hclust(d, method = hclust_method)
               idents <- as.factor(cutree(hc, k))
-
-              if (k == 2){
-               mean_1 <-  mean(as.numeric(fc@expression[i,][idents==1]))
-               mean_2 <-  mean(as.numeric(fc@expression[i,][idents==2]))
-               if (mean_1 > mean_2){
-                 # The first cluster will be the header positive cluster
-                 first = "HP"
-                 second = "HN"
-               } else {
-                 # The first cluster will be the header negative cluster
-                 first = "HN"
-                 second = "HP"
-                 }
-              idents <- ifelse(idents == 1, first, second)
+              
+              if (k == 2) {
+                mean_1 <-  mean(as.numeric(fc@expression[i, ][idents == 1]))
+                mean_2 <-
+                  mean(as.numeric(fc@expression[i, ][idents == 2]))
+                if (mean_1 > mean_2) {
+                  # The first cluster will be the header positive cluster
+                  first = "HP"
+                  second = "HN"
+                } else {
+                  # The first cluster will be the header negative cluster
+                  first = "HN"
+                  second = "HP"
+                }
+                idents <- ifelse(idents == 1, first, second)
                 
               }
               mod_idents[[i]] <- as.factor(idents)
@@ -725,8 +757,8 @@ setMethod("recluster", signature("fcoex"),
 #'
 #' @return Named object of class \code{list} with clusterings derived
 #' from the recluster function.
-#' 
-#' @examples 
+#'
+#' @examples
 #' data("fc")
 #' idents(fc)
 #' @references Guangchuang Yu, Li-Gen Wang, Yanyan Han, Qing-Yu He. clusterProfiler:
