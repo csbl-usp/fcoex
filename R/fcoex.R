@@ -186,7 +186,7 @@ setMethod("discretize", signature("fcoex"),
            exprs_small) {
     gene_i <- as.factor(discretized_exprs[i,])
     gene_i_correlates <-
-      FCBF::get_su(x = exprs_small, y = as.factor(exprs_small[i,]))
+      FCBF::get_su_for_feature_table_and_vector(feature_table = exprs_small, target_vector = as.factor(exprs_small[i,]))
     gene_i_correlates$gene <-
       gsub('\\.', '-', rownames(gene_i_correlates))
     gene_i_correlates <-
@@ -216,10 +216,10 @@ setMethod("discretize", signature("fcoex"),
 #' @param is_parallel Uses package parallel to paralleliza calculations. 
 #' Defaults to FALSE.
 #' @param verbose Adds verbosity. Defaults to TRUE
-#' @param n_genes Sets the number of genes to be selected in the first 
+#' @param n_genes_selected_in_first_step Sets the number of genes to be selected in the first 
 #' part of the algorithm. If left unchanged, it defaults to NULL and the 
-#' thresh parameter is used. 
-#' Caution: it overrides the thresh parameter altogether.
+#' minimum_su parameter is used. 
+#' Caution: it overrides the minimum_su parameter altogether.
 #' 
 #' @examples 
 #' library(SingleCellExperiment) 
@@ -237,7 +237,7 @@ setMethod("discretize", signature("fcoex"),
 #' @export
 #' @rdname find_cbf_modules
 setGeneric("find_cbf_modules", function(fc,                                                           
-                                        n_genes = NULL,
+                                        n_genes_selected_in_first_step = NULL,
                                         FCBF_threshold = 0.1,
                                         verbose = TRUE,
                                         is_parallel = FALSE) {
@@ -247,7 +247,7 @@ setGeneric("find_cbf_modules", function(fc,
 #' @rdname find_cbf_modules
 setMethod("find_cbf_modules", signature("fcoex"), 
           function(fc,
-                                                    n_genes = NULL,
+                                                    n_genes_selected_in_first_step = NULL,
                                                     FCBF_threshold = 0.1,
                                                     verbose = TRUE,
                                                     is_parallel = FALSE) {
@@ -257,7 +257,7 @@ setMethod("find_cbf_modules", signature("fcoex"),
   
   # get the SU scores for each gene
   message('Getting SU scores')
-  su_to_class <- FCBF::get_su(discretized_exprs, target)
+  su_to_class <- FCBF::get_su_for_feature_table_and_vector(discretized_exprs, target)
   su_to_class$gene <- gsub('\\.', '-', rownames(su_to_class))
   colnames(su_to_class)[1] <- 'SU'
   
@@ -267,15 +267,15 @@ setMethod("find_cbf_modules", signature("fcoex"),
   fcbf_filtered <-
     FCBF::fcbf(discretized_exprs,
                target,
-               n_genes,
-               thresh = FCBF_threshold,
+               n_genes_selected_in_first_step,
+               minimum_su = FCBF_threshold,
                verbose = verbose)
   
   fcbf_filtered$gene <- rownames(fcbf_filtered)
   # R does not like points. Subs for -.
   FCBF_genes <- gsub('\\.', '-', fcbf_filtered$gene)
-  if (length(n_genes)) {
-    FCBF_threshold <- su_to_class$SU[n_genes]
+  if (length(n_genes_selected_in_first_step)) {
+    FCBF_threshold <- su_to_class$SU[n_genes_selected_in_first_step]
   }
   
   # get only those with an SU score above a threshold
@@ -304,7 +304,7 @@ setMethod("find_cbf_modules", signature("fcoex"),
       pb_findclusters$tick()
       gene_i <- as.factor(discretized_exprs[i,])
       gene_i_correlates <-
-        FCBF::get_su(x = exprs_small, y = as.factor(exprs_small[i,]))
+        FCBF::get_su_for_feature_table_and_vector(feature_table = exprs_small, target_vector = as.factor(exprs_small[i,]))
       gene_i_correlates$gene <-
         gsub('\\.', '-', rownames(gene_i_correlates))
       gene_i_correlates <-
@@ -315,29 +315,6 @@ setMethod("find_cbf_modules", signature("fcoex"),
     }
     su_i_j_matrix <- su_i_j_matrix[, -1]
 
-  
-  #      This was not faster than the for loop! ######
-  #
-  #      get_correlates <- function(i, su_i_j_matrix, discretized_exprs, 
-  #   exprs_small){
-  #    gene_i <- as.factor(discretized_exprs[i, ])
-  #     gene_i_correlates <- FCBF::get_su(x = exprs_small, 
-  #    y = as.factor(exprs_small[i, ]))
-  #     gene_i_correlates$gene <- gsub('\\.', '-',rownames(gene_i_correlates))
-  #   gene_i_correlates <- gene_i_correlates[match(su_i_j_matrix$genes,gene_i_correlates$gene),]
-  #     colnames(gene_i_correlates)[1] <- i
-  #      su_i_j_matrix[, i] <- gene_i_correlates[,1]
-  #      su_i_j_matrix[, i]
-  #    }
-  #
-  #   bla <- pblapply(SU_genes, function(x){
-  #     get_correlates(x, su_i_j_matrix, discretized_exprs, exprs_small)
-  #   })
-  #
-  #   su_i_j_matrix <- as.data.frame(ble)
-  ##################################################
-  
-  # Second Try
   }  else {
     cl <- detectCores() - 2
     bla <- mclapply(SU_genes, function(i) {
