@@ -192,7 +192,7 @@ setMethod("discretize", signature("fcoex"),
     FCBF::get_su_for_feature_table_and_vector(feature_table = expression_table_only_with_genes_with_high_su,
                                               target_vector = as.factor(expression_table_only_with_genes_with_high_su[i, ]))
   gene_i_correlates$gene <-
-    gsub('\\.', '-', rownames(gene_i_correlates))
+    change_dots_for_dashes(rownames(gene_i_correlates))
   gene_i_correlates <-
     gene_i_correlates[match(gene_by_gene_su_correlation$genes, gene_i_correlates$gene),]
   colnames(gene_i_correlates)[1] <- i
@@ -272,7 +272,7 @@ setMethod("find_cbf_modules", signature("fcoex"),
             message('Getting SU scores')
             su_to_class <-
               FCBF::get_su_for_feature_table_and_vector(discretized_exprs, target)
-            su_to_class$gene <- gsub('\\.', '-', rownames(su_to_class))
+            su_to_class$gene <- change_dots_for_dashes(rownames(su_to_class))
             colnames(su_to_class)[1] <- 'SU'
             
             
@@ -290,22 +290,24 @@ setMethod("find_cbf_modules", signature("fcoex"),
             output_of_fcbf_filter$gene <- rownames(output_of_fcbf_filter)
             
             # R does not like points. Subs for -.
-            output_of_fcbf_filter$gene <- gsub('\\.', '-', output_of_fcbf_filter$gene)
+            output_of_fcbf_filter$gene <- change_dots_for_dashes(output_of_fcbf_filter$gene)
             
             genes_from_fcbf_filter = output_of_fcbf_filter$gene
             
             
             # Heuristic to get the minimum_su for the algorithm from a user input of number of genes
             
+            
             if(length(n_genes_selected_in_first_step)) {
               minimum_su_for_the_fcbf_algorithm <- su_to_class$SU[n_genes_selected_in_first_step]
             }
             
 
+            
             su_to_class_higher_than_minimum_su <-
               su_to_class[su_to_class[1] > minimum_su_for_the_fcbf_algorithm,]
             
-            genes_from_su_ranking <- gsub('\\.', '-', su_to_class_higher_than_minimum_su[, 2])
+            genes_from_su_ranking <- change_dots_for_dashes(su_to_class_higher_than_minimum_su[, 2])
             
             # Save the selected genes_from_su_ranking  in the fc object
             fc@selected_genes <- genes_from_su_ranking
@@ -323,20 +325,29 @@ setMethod("find_cbf_modules", signature("fcoex"),
                                                   format =   "[:bar] :percent eta:
                                                   :eta")
               # this can surely be improved for speed.
-              for (i in genes_from_su_ranking) {
+              for (gene_i in genes_from_su_ranking) {
+                
+                print(gene_i)
                 pb_findclusters$tick()
-                gene_i <- as.factor(discretized_exprs[i, ])
+                
+                discrete_vector_of_gene_i <- as.factor(expression_table_only_with_genes_with_high_su[gene_i, ])
+                
                 gene_i_correlates <-
                   FCBF::get_su_for_feature_table_and_vector(feature_table = expression_table_only_with_genes_with_high_su,
-                                                            target_vector = as.factor(expression_table_only_with_genes_with_high_su[i, ]))
-                gene_i_correlates$gene <-
-                  gsub('\\.', '-', rownames(gene_i_correlates))
+                                                            target_vector = as.factor(discrete_vector_of_gene_i))
+                
+                gene_i_correlates$gene <- change_dots_for_dashes(rownames(gene_i_correlates))
+                
+                # Reordering rows
                 gene_i_correlates <-
                   gene_i_correlates[match(gene_by_gene_su_correlation$genes, gene_i_correlates$gene),]
-                colnames(gene_i_correlates)[1] <- i
-                gene_by_gene_su_correlation[, i] <- gene_i_correlates[, 1]
+                
+                colnames(gene_i_correlates)[1] <- gene_i
+                
+                gene_by_gene_su_correlation[, gene_i] <- gene_i_correlates[, 1]
                 
               }
+              
               gene_by_gene_su_correlation <- gene_by_gene_su_correlation[,-1]
               
             }  else {
@@ -775,3 +786,13 @@ setMethod("idents", signature("fcoex"),
           function(fc) {
             return(fc@mod_idents)
           })
+
+
+###### auxiliary functions #####
+
+
+change_dots_for_dashes <- function(vector_of_genes){
+  gsub('\\.', '-', vector_of_genes)
+}
+
+
