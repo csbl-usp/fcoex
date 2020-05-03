@@ -259,7 +259,9 @@ setMethod("find_cbf_modules", signature("fcoex"),
             discretized_exprs <- fc@discretized_expression
             target <- fc@target
             
-            first_name_in_rows = rownames(discretized_exprs)[1] 
+            
+            first_name_in_rows = rownames(discretized_exprs)[1]
+            
             if (first_name_in_rows == "1"){
               stop("The discretized dataframe does not have rownames. That makes fcoex sad! Please, rerun the discretize(fc) method for a expression table with rownames.")
             }
@@ -270,6 +272,8 @@ setMethod("find_cbf_modules", signature("fcoex"),
             
             # get the SU scores for each gene
             message('Getting SU scores')
+            
+            
             su_to_class <-
               FCBF::get_su_for_feature_table_and_vector(discretized_exprs, target)
             su_to_class$gene <- change_dots_for_dashes(rownames(su_to_class))
@@ -278,6 +282,7 @@ setMethod("find_cbf_modules", signature("fcoex"),
             
             # Run FCBF with the parameters of the function.
             message('Running FCBF to find module headers')
+            
             output_of_fcbf_filter <-
               FCBF::fcbf(
                 discretized_exprs,
@@ -315,42 +320,19 @@ setMethod("find_cbf_modules", signature("fcoex"),
             expression_table_only_with_genes_with_high_su <- discretized_exprs[genes_from_su_ranking ,]
             
             
-            # get and adjacency matrix for gene to gene correlation
-            gene_by_gene_su_correlation <- data.frame(genes =  genes_from_su_ranking)
+
             
             message('Calculating adjacency matrix')
             
             if (!is_parallel) {
-              pb_findclusters <- progress_bar$new(total = length(genes_from_su_ranking),
-                                                  format =   "[:bar] :percent eta:
-                                                  :eta")
-              # this can surely be improved for speed.
-              for (gene_i in genes_from_su_ranking) {
-                
-                print(gene_i)
-                pb_findclusters$tick()
-                
-                discrete_vector_of_gene_i <- as.factor(expression_table_only_with_genes_with_high_su[gene_i, ])
-                
-                gene_i_correlates <-
-                  FCBF::get_su_for_feature_table_and_vector(feature_table = expression_table_only_with_genes_with_high_su,
-                                                            target_vector = as.factor(discrete_vector_of_gene_i))
-                
-                gene_i_correlates$gene <- change_dots_for_dashes(rownames(gene_i_correlates))
-                
-                # Reordering rows
-                gene_i_correlates <-
-                  gene_i_correlates[match(gene_by_gene_su_correlation$genes, gene_i_correlates$gene),]
-                
-                colnames(gene_i_correlates)[1] <- gene_i
-                
-                gene_by_gene_su_correlation[, gene_i] <- gene_i_correlates[, 1]
-                
-              }
               
-              gene_by_gene_su_correlation <- gene_by_gene_su_correlation[,-1]
+              gene_by_gene_su_correlation <- get_gene_by_gene_correlation_matrix_in_series(genes_from_su_ranking, 
+                                                                                 expression_table_only_with_genes_with_high_su)
               
             }  else {
+              # get and adjacency matrix for gene to gene correlation
+              gene_by_gene_su_correlation <- data.frame(genes =  genes_from_su_ranking)
+              
               cl <- detectCores() - 2
               bla <- mclapply(genes_from_su_ranking, function(i) {
                 .get_correlates(i, gene_by_gene_su_correlation, discretized_exprs, expression_table_only_with_genes_with_high_su)
@@ -373,11 +355,17 @@ setMethod("find_cbf_modules", signature("fcoex"),
             
             
             list_of_fcbf_modules <- list()
+            
             for (seed in genes_from_fcbf_filter) {
+              print(seed)
+              
+              correlated_genes_score = filtered_gene_by_gene_su_correlation[, seed]
+              
               module_members <-
-                as.character(filtered_gene_by_gene_su_correlation$genes[filtered_gene_by_gene_su_correlation[, seed] >
-                                                            0])
+                as.character(filtered_gene_by_gene_su_correlation$genes[correlated_genes_score >0])
+              
               module_members <- module_members[!is.na(module_members)]
+              
               if (length(module_members) > 1) {
                 list_of_fcbf_modules[[seed]] <- module_members
               }
@@ -795,4 +783,45 @@ change_dots_for_dashes <- function(vector_of_genes){
   gsub('\\.', '-', vector_of_genes)
 }
 
+
+get_gene_by_gene_correlation_matrix_in_series <- function(genes_from_su_ranking, 
+                                    expression_table_only_with_genes_with_high_su){
+  
+  # get and adjacency matrix for gene to gene correlation
+  gene_by_gene_su_correlation <- data.frame(genes =  genes_from_su_ranking)
+  
+  pb_findclusters <- progress_bar$new(total = length(genes_from_su_ranking),
+                                      format =   "[:bar] :percent eta:
+                                                  :eta")
+  # this can surely be improved for speed.
+  for (gene_i in genes_from_su_ranking) {
+    
+    print(gene_i)
+    pb_findclusters$tick()
+    
+    discrete_vector_of_gene_i <- as.factor(expression_table_only_with_genes_with_high_su[gene_i, ])
+    
+    gene_i_correlates <-
+      FCBF::get_su_for_feature_table_and_vector(feature_table = expression_table_only_with_genes_with_high_su,
+                                                target_vector = as.factor(discrete_vector_of_gene_i))
+    
+    gene_i_correlates$gene <- change_dots_for_dashes(rownames(gene_i_correlates))
+    
+    # Reordering rows
+    gene_i_correlates <-
+      gene_i_correlates[match(gene_by_gene_su_correlation$genes, gene_i_correlates$gene),]
+    
+    colnames(gene_i_correlates)[1] <- gene_i
+    
+    gene_by_gene_su_correlation[, gene_i] <- gene_i_correlates[, 1]
+    
+  }
+  
+  gene_by_gene_su_correlation <- gene_by_gene_su_correlation[,-1]
+  
+  
+  return(gene_by_gene_su_correlation)
+  
+  
+}
 
