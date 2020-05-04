@@ -330,16 +330,12 @@ setMethod("find_cbf_modules", signature("fcoex"),
                                                                                  expression_table_only_with_genes_with_high_su)
               
             }  else {
-              # get and adjacency matrix for gene to gene correlation
-              gene_by_gene_su_correlation <- data.frame(genes =  genes_from_su_ranking)
               
-              cl <- detectCores() - 2
-              bla <- mclapply(genes_from_su_ranking, function(i) {
-                .get_correlates(i, gene_by_gene_su_correlation, discretized_exprs, expression_table_only_with_genes_with_high_su)
-              }, mc.cores = cl)
-              gene_by_gene_su_correlation <- as.data.frame(bla)
-              rownames(gene_by_gene_su_correlation) <- su_to_class_higher_than_minimum_su$gene
-              colnames(gene_by_gene_su_correlation) <- su_to_class_higher_than_minimum_su$gene
+              gene_by_gene_su_correlation <- get_gene_by_gene_correlation_matrix_in_parallel(genes_from_su_ranking, 
+                                                                                           expression_table_only_with_genes_with_high_su,
+                                                                                           discretized_exprs,
+                                                                                           su_to_class_higher_than_minimum_su)
+
             }
             
             
@@ -825,3 +821,25 @@ get_gene_by_gene_correlation_matrix_in_series <- function(genes_from_su_ranking,
   
 }
 
+get_gene_by_gene_correlation_matrix_in_parallel<- function(genes_from_su_ranking, 
+                                                expression_table_only_with_genes_with_high_su,
+                                                discretized_exprs,
+                                                su_to_class_higher_than_minimum_su){
+  
+  # get and adjacency matrix for gene to gene correlation
+  gene_by_gene_su_correlation <- data.frame(genes =  genes_from_su_ranking)
+  
+  cl <- detectCores() - 2
+  bla <- mclapply(genes_from_su_ranking, function(i) {
+    .get_correlates(i, gene_by_gene_su_correlation, discretized_exprs, expression_table_only_with_genes_with_high_su)
+  }, mc.cores = cl)
+  gene_by_gene_su_correlation <- as.data.frame(bla)
+  rownames(gene_by_gene_su_correlation) <- su_to_class_higher_than_minimum_su$gene
+  colnames(gene_by_gene_su_correlation) <- su_to_class_higher_than_minimum_su$gene
+  
+  return(gene_by_gene_su_correlation)
+  
+  
+  
+  
+}
