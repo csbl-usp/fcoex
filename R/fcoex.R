@@ -283,22 +283,11 @@ setMethod("find_cbf_modules", signature("fcoex"),
             # Run FCBF with the parameters of the function.
             message('Running FCBF to find module headers')
             
-            output_of_fcbf_filter <-
-              FCBF::fcbf(
-                discretized_exprs,
-                target,
-                n_genes_selected_in_first_step,
-                minimum_su = FCBF_threshold,
-                verbose = verbose
-              )
-            
-            output_of_fcbf_filter$gene <- rownames(output_of_fcbf_filter)
-            
-            # R does not like points. Subs for -.
-            output_of_fcbf_filter$gene <- change_dots_for_dashes(output_of_fcbf_filter$gene)
-            
-            genes_from_fcbf_filter = output_of_fcbf_filter$gene
-            
+            genes_from_fcbf_filter <- run_fcbf_for_module_headers(discretized_exprs,
+                                                                  target,
+                                                                  n_genes_selected_in_first_step,
+                                                                  minimum_su = FCBF_threshold,
+                                                                  verbose = verbose)
             
             # Heuristic to get the minimum_su for the algorithm from a user input of number of genes
             
@@ -307,66 +296,36 @@ setMethod("find_cbf_modules", signature("fcoex"),
               minimum_su_for_the_fcbf_algorithm <- su_to_class$SU[n_genes_selected_in_first_step]
             }
             
-
-            
             su_to_class_higher_than_minimum_su <-
               su_to_class[su_to_class[1] > minimum_su_for_the_fcbf_algorithm,]
             
             genes_from_su_ranking <- change_dots_for_dashes(su_to_class_higher_than_minimum_su[, 2])
             
-            # Save the selected genes_from_su_ranking  in the fc object
-            fc@selected_genes <- genes_from_su_ranking
-            
             expression_table_only_with_genes_with_high_su <- discretized_exprs[genes_from_su_ranking ,]
-            
-            
-
-            
+        
             message('Calculating adjacency matrix')
             
             if (!is_parallel) {
-              
               gene_by_gene_su_correlation <- get_gene_by_gene_correlation_matrix_in_series(genes_from_su_ranking, 
                                                                                  expression_table_only_with_genes_with_high_su)
               
             }  else {
-              
               gene_by_gene_su_correlation <- get_gene_by_gene_correlation_matrix_in_parallel(genes_from_su_ranking, 
                                                                                            expression_table_only_with_genes_with_high_su,
                                                                                            discretized_exprs,
                                                                                            su_to_class_higher_than_minimum_su)
-
             }
-            
             
             message('Trimming and getting modules from adjacency matrix')
             
-            filtered_gene_by_gene_su_correlation <- data.frame(genes =  genes_from_su_ranking)
+            filtered_gene_by_gene_su_correlation <- trim_correlation_matrix(genes_from_su_ranking,
+                                                                            gene_by_gene_su_correlation,
+                                                                            su_to_class,
+                                                                            su_to_class_higher_than_minimum_su)
             
-            for (i in colnames(gene_by_gene_su_correlation)) {
-              tf_vector <-
-                gene_by_gene_su_correlation[, i] > su_to_class$SU[seq_along(su_to_class_higher_than_minimum_su$gene)]
-              filtered_gene_by_gene_su_correlation[, i] <- gene_by_gene_su_correlation[, i] * tf_vector
-            }
-            
-            
-            list_of_fcbf_modules <- list()
-            
-            for (seed in genes_from_fcbf_filter) {
-              print(seed)
-              
-              correlated_genes_score = filtered_gene_by_gene_su_correlation[, seed]
-              
-              module_members <-
-                as.character(filtered_gene_by_gene_su_correlation$genes[correlated_genes_score >0])
-              
-              module_members <- module_members[!is.na(module_members)]
-              
-              if (length(module_members) > 1) {
-                list_of_fcbf_modules[[seed]] <- module_members
-              }
-            }
-            
+            list_of_fcbf_modules <- get_list_of_modules(genes_from_fcbf_filter, filtered_gene_by_gene_su_correlation)
+          
+            fc@selected_genes <- genes_from_su_ranking
             fc@adjacency <- gene_by_gene_su_correlation
             fc@adjacency_trimmed <- filtered_gene_by_gene_su_correlation
             fc@module_list <- list_of_fcbf_modules
@@ -839,7 +798,70 @@ get_gene_by_gene_correlation_matrix_in_parallel<- function(genes_from_su_ranking
   
   return(gene_by_gene_su_correlation)
   
+}
+
+trim_correlation_matrix <- function(genes_from_su_ranking,
+                        gene_by_gene_su_correlation,
+                        su_to_class,
+                        su_to_class_higher_than_minimum_su){
+
+filtered_gene_by_gene_su_correlation <- data.frame(genes =  genes_from_su_ranking)
+
+for (i in colnames(gene_by_gene_su_correlation)) {
+  tf_vector <-
+    gene_by_gene_su_correlation[, i] > su_to_class$SU[seq_along(su_to_class_higher_than_minimum_su$gene)]
+  filtered_gene_by_gene_su_correlation[, i] <- gene_by_gene_su_correlation[, i] * tf_vector
+}
+
+return(filtered_gene_by_gene_su_correlation)
+}
+
+
+get_list_of_modules <- function(genes_from_fcbf_filter, filtered_gene_by_gene_su_correlation){
   
+  list_of_fcbf_modules <- list()
   
+  for (seed in genes_from_fcbf_filter) {
+    print(seed)
+    
+    correlated_genes_score = filtered_gene_by_gene_su_correlation[, seed]
+    
+    module_members <-
+      as.character(filtered_gene_by_gene_su_correlation$genes[correlated_genes_score >0])
+    
+    module_members <- module_members[!is.na(module_members)]
+    if (length(module_members) > 1) {
+      list_of_fcbf_modules[[seed]] <- module_members
+    }
+  }
+  
+  return(list_of_fcbf_modules)
   
 }
+
+
+run_fcbf_for_module_headers <- function(discretized_exprs,
+                                                      target,
+                                                      n_genes_selected_in_first_step,
+                                                      minimum_su = FCBF_threshold,
+                                                      verbose = verbose){
+    output_of_fcbf_filter <-
+    FCBF::fcbf(
+      discretized_exprs,
+      target,
+      n_genes_selected_in_first_step,
+      minimum_su = FCBF_threshold,
+      verbose = verbose
+    )
+  
+  output_of_fcbf_filter$gene <- rownames(output_of_fcbf_filter)
+  
+  output_of_fcbf_filter$gene <- change_dots_for_dashes(output_of_fcbf_filter$gene)
+  
+  genes_from_fcbf_filter = output_of_fcbf_filter$gene
+  
+  return(genes_from_fcbf_filter)
+  
+}
+
+
