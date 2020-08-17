@@ -19,13 +19,13 @@ Object of class \code{data.frame} with ORA data
 Retrieve over representation analysis (ORA) results
 }
 \details{
-This function returns the results of the \code{mod_ora} function 
-on the \code{fcoex} object. The ID column corresponds to pathways in 
-the gmt file for which  genes in the modules were enriched. The Count 
-column shows the number of genes in the module that are enriched for each 
+This function returns the results of the \code{mod_ora} function
+on the \code{fcoex} object. The ID column corresponds to pathways in
+the gmt file for which  genes in the modules were enriched. The Count
+column shows the number of genes in the module that are enriched for each
 pathway. The GeneRatio column shows the proportion of  genes in the module
-enriched for a given pathway out of all the genes in the module enriched 
-for any given pathway. The BgRatio column shows the proportion of genes 
+enriched for a given pathway out of all the genes in the module enriched
+for any given pathway. The BgRatio column shows the proportion of genes
 in a given pathway out of all the genes in the gmt file. For more details,
 please refer to the \code{clusterProfiler} package documentation.
 

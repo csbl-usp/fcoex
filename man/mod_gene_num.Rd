@@ -13,7 +13,7 @@ mod_gene_num(fc, module = NULL)
 \arguments{
 \item{fc}{Object of class \code{fcoex}}
 
-\item{module}{Default is NULL. If a character string designating a 
+\item{module}{Default is NULL. If a character string designating a
 module is#' given, the number of genes in that module is returned instead.}
 }
 \value{

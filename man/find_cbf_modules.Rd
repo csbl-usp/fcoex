@@ -7,7 +7,7 @@
 \usage{
 find_cbf_modules(
   fc,
-  n_genes = NULL,
+  n_genes_selected_in_first_step = NULL,
   FCBF_threshold = 0.1,
   verbose = TRUE,
   is_parallel = FALSE
@@ -15,7 +15,7 @@ find_cbf_modules(
 
 \S4method{find_cbf_modules}{fcoex}(
   fc,
-  n_genes = NULL,
+  n_genes_selected_in_first_step = NULL,
   FCBF_threshold = 0.1,
   verbose = TRUE,
   is_parallel = FALSE
@@ -24,19 +24,19 @@ find_cbf_modules(
 \arguments{
 \item{fc}{A fcoex object containing a discretized expression table}
 
-\item{n_genes}{Sets the number of genes to be selected in the first 
-part of the algorithm. If left unchanged, it defaults to NULL and the 
-thresh parameter is used. 
-Caution: it overrides the thresh parameter altogether.}
+\item{n_genes_selected_in_first_step}{Sets the number of genes to be selected in the first
+part of the algorithm. If left unchanged, it defaults to NULL and the
+minimum_su parameter is used.
+Caution: it overrides the minimum_su parameter altogether.}
 
-\item{FCBF_threshold}{A threshold for the minimum correlation (as 
+\item{FCBF_threshold}{A threshold for the minimum correlation (as
 determined by symettrical uncertainty)
-between each variable and the class used for wrapped FCBF function. 
+between each variable and the class used for wrapped FCBF function.
 Defaults to 0.1.}
 
 \item{verbose}{Adds verbosity. Defaults to TRUE}
 
-\item{is_parallel}{Uses package parallel to paralleliza calculations. 
+\item{is_parallel}{Uses package parallel to paralleliza calculations.
 Defaults to FALSE.}
 }
 \value{
@@ -45,17 +45,13 @@ Returns a list with the CBF modules found or a adjacency matrix of the graph
 \description{
 find_cbf_modules uses Symmetrical Uncertainty as a correlation measure
  and the FCBF algorithm to
-}
-\details{
 1 - Filter the gene list by correlations to a class (Step 1)
-
 and
-
-2 - Determine soft thresholds for coexpression to genes predominantly 
+2 - Determine soft thresholds for coexpression to genes predominantly
 correlated to a class.
 }
 \examples{
-library(SingleCellExperiment) 
+library(SingleCellExperiment)
 data("mini_pbmc3k")
 targets <- colData(mini_pbmc3k)$clusters
 exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))

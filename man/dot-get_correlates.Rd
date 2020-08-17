@@ -4,20 +4,25 @@
 \alias{.get_correlates}
 \title{.get_correlates}
 \usage{
-.get_correlates(i, su_i_j_matrix, discretized_exprs, exprs_small)
+.get_correlates(
+  i,
+  gene_by_gene_su_correlation,
+  discretized_exprs,
+  expression_table_only_with_genes_with_high_su
+)
 }
 \arguments{
 \item{i}{A gene to be correlated}
 
-\item{su_i_j_matrix}{the dataframe with the correlations to be updated}
+\item{gene_by_gene_su_correlation}{the dataframe with the correlations to be updated}
 
-\item{discretized_exprs}{the dataframe with discretized expression 
+\item{discretized_exprs}{the dataframe with discretized expression
 to extract a gene}
 
-\item{exprs_small}{the dataframe to after the filtering step}
+\item{expression_table_only_with_genes_with_high_su}{the dataframe to after the filtering step}
 }
 \value{
-the updated column of the su_i_j_matrix
+the updated column of the gene_by_gene_su_correlation
 }
 \description{
 auxiliary function for find_cbf_modules
