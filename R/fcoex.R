@@ -260,19 +260,12 @@ setMethod("find_cbf_modules", signature("fcoex"),
 
             check_rownames(discretized_exprs)
             
-            if (any(grepl(" ", rownames(discretized_exprs)))){
-              stop("Oops, there are spaces in at least one of your rownames. That makes fcoex sad! Please, rerun the discretize(fc) method for a expression table with rownames without space.")
-            }
-            
+
             # get the SU scores for each gene
             message('Getting SU scores')
             
-            
-            su_to_class <-
-              FCBF::get_su_for_feature_table_and_vector(discretized_exprs, target)
-            su_to_class$gene <- change_dots_for_dashes(rownames(su_to_class))
-            colnames(su_to_class)[1] <- 'SU'
-            
+            su_to_class <- get_su_ranking_in_relation_to_class(discretized_exprs, target)
+
             
             # Run FCBF with the parameters of the function.
             message('Running FCBF to find module headers')
@@ -335,6 +328,17 @@ check_rownames <- function(discretized_exprs) {
   if (first_name_in_rows == "1"){
     stop("The discretized dataframe does not have rownames. That makes fcoex sad! Please, rerun the discretize(fc) method for a expression table with rownames.")
   }
+  if (any(grepl(" ", rownames(discretized_exprs)))){
+    stop("Oops, there are spaces in at least one of your rownames. That makes fcoex sad! Please, rerun the discretize(fc) method for a expression table with rownames without space.")
+  }
+}
+
+get_su_ranking_in_relation_to_class <- function(discretized_exprs, target) {
+  su_to_class <-
+    FCBF::get_su_for_feature_table_and_vector(discretized_exprs, target)
+  su_to_class$gene <- change_dots_for_dashes(rownames(su_to_class))
+  colnames(su_to_class)[1] <- 'SU'
+  return(su_to_class)
 }
 
 
