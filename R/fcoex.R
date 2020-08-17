@@ -3,8 +3,6 @@
 # located inside the source code for CEMiTool functions.
 # Functions that contained adapted code were explicit denoted.
 
-
-
 #' @importFrom grDevices rainbow dev.off pdf
 #' @importFrom utils write.table head
 #' @importFrom stats cutree dist hclust
@@ -255,33 +253,22 @@ setMethod("find_cbf_modules", signature("fcoex"),
             
             discretized_exprs <- fc@discretized_expression
             target <- fc@target
-            
-            
 
             check_rownames(discretized_exprs)
             
-
-            # get the SU scores for each gene
             message('Getting SU scores')
             
             su_to_class <- get_su_ranking_in_relation_to_class(discretized_exprs, target)
 
-            
-            # Run FCBF with the parameters of the function.
             message('Running FCBF to find module headers')
             
-            genes_from_fcbf_filter <- run_fcbf_for_module_headers(discretized_exprs,
-                                                                  target,
-                                                                  n_genes_selected_in_first_step,
-                                                                  minimum_su = FCBF_threshold,
-                                                                  verbose = verbose)
-            
-            # Heuristic to get the minimum_su for the algorithm from a user input of number of genes
-            
-            
-            if(length(n_genes_selected_in_first_step)) {
-              minimum_su_for_the_fcbf_algorithm <- su_to_class$SU[n_genes_selected_in_first_step]
-            }
+            minimum_su_for_the_fcbf_algorithm <- get_minimum_su(n_genes_selected_in_first_step, su_to_class, minimum_su)
+
+            module_headers <- run_fcbf_for_module_headers(discretized_exprs,
+                                                          target,
+                                                          n_genes_selected_in_first_step,
+                                                          minimum_su = minimum_su_for_the_fcbf_algorithm,
+                                                          verbose = verbose)
             
             su_to_class_higher_than_minimum_su <-
               su_to_class[su_to_class[1] > minimum_su_for_the_fcbf_algorithm,]
@@ -310,7 +297,7 @@ setMethod("find_cbf_modules", signature("fcoex"),
                                                                             su_to_class,
                                                                             su_to_class_higher_than_minimum_su)
             
-            list_of_fcbf_modules <- get_list_of_modules(genes_from_fcbf_filter, filtered_gene_by_gene_su_correlation)
+            list_of_fcbf_modules <- get_list_of_modules(module_headers, filtered_gene_by_gene_su_correlation)
           
             fc@selected_genes <- genes_from_su_ranking
             fc@adjacency <- gene_by_gene_su_correlation
@@ -341,6 +328,17 @@ get_su_ranking_in_relation_to_class <- function(discretized_exprs, target) {
   return(su_to_class)
 }
 
+get_minimum_su <- function(n_genes_selected_in_first_step, su_to_class, minimum_su) {
+  # Heuristic to get a minimum_su when user inputs number of genes
+  
+  if(length(n_genes_selected_in_first_step)) {
+    minimum_su <- su_to_class$SU[n_genes_selected_in_first_step]
+    return(minimum_su)
+  } else{
+    return(minimum_su)
+  }
+  
+}
 
 #' Get the number of modules in a fcoex object
 #'
@@ -554,7 +552,6 @@ setGeneric('mod_ora', function(fc, gmt, verbose = FALSE) {
 #' @rdname mod_ora
 setMethod('mod_ora', signature('fcoex'),
           function(fc, gmt, verbose = FALSE) {
-            #fc <- get_args(fc, vars=mget(ls()))
             if (!is(gmt, "pathwayCollection")) {
               stop(
                 "The gmt object must be loaded via pathwayPCA::read_gmt and be a pathwayCollectionobject"
@@ -750,13 +747,11 @@ change_dots_for_dashes <- function(vector_of_genes){
 get_gene_by_gene_correlation_matrix_in_series <- function(genes_from_su_ranking, 
                                     expression_table_only_with_genes_with_high_su){
   
-  # get and adjacency matrix for gene to gene correlation
   gene_by_gene_su_correlation <- data.frame(genes =  genes_from_su_ranking)
   
   pb_findclusters <- progress_bar$new(total = length(genes_from_su_ranking),
                                       format =   "[:bar] :percent eta:
                                                   :eta")
-  # this can surely be improved for speed.
   for (gene_i in genes_from_su_ranking) {
     
     print(gene_i)
