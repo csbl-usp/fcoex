@@ -1,6 +1,5 @@
 context("fcoex methods")
 
-
 #### Setting variables #####
 ncells <- 10
 
@@ -37,8 +36,6 @@ test_that("discretization works", {
 test_that("module finder works", {
   expect_is(fc@module_list, "list")
   
-
   genes_in_module_for_gene_25 = c("Gene-25", "Gene-34")
-  
   expect_equal(fc@module_list[["Gene-25"]], genes_in_module_for_gene_25)
 })

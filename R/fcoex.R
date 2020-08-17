@@ -204,11 +204,8 @@ setMethod("discretize", signature("fcoex"),
 #'
 #' find_cbf_modules uses Symmetrical Uncertainty as a correlation measure
 #'  and the FCBF algorithm to
-#'
 #' 1 - Filter the gene list by correlations to a class (Step 1)
-#'
 #' and
-#'
 #' 2 - Determine soft thresholds for coexpression to genes predominantly
 #' correlated to a class.
 #'
@@ -260,11 +257,8 @@ setMethod("find_cbf_modules", signature("fcoex"),
             target <- fc@target
             
             
-            first_name_in_rows = rownames(discretized_exprs)[1]
-            
-            if (first_name_in_rows == "1"){
-              stop("The discretized dataframe does not have rownames. That makes fcoex sad! Please, rerun the discretize(fc) method for a expression table with rownames.")
-            }
+
+            check_rownames(discretized_exprs)
             
             if (any(grepl(" ", rownames(discretized_exprs)))){
               stop("Oops, there are spaces in at least one of your rownames. That makes fcoex sad! Please, rerun the discretize(fc) method for a expression table with rownames without space.")
@@ -332,6 +326,16 @@ setMethod("find_cbf_modules", signature("fcoex"),
             return(fc)
           })
 
+
+##### Functions extracted from "find_cbf_modules" ##### 
+
+
+check_rownames <- function(discretized_exprs) {
+  first_name_in_rows = rownames(discretized_exprs)[1]
+  if (first_name_in_rows == "1"){
+    stop("The discretized dataframe does not have rownames. That makes fcoex sad! Please, rerun the discretize(fc) method for a expression table with rownames.")
+  }
+}
 
 
 #' Get the number of modules in a fcoex object
