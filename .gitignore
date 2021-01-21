@@ -6,3 +6,4 @@
 .Rbuildignore .RData .Rhistory .Rproj.user
 fcoex.Rproj
 vignettes/fcoex_files/
+diagnostic.rmd
