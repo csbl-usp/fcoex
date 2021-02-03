@@ -476,8 +476,7 @@ setMethod('save_plots', signature('fcoex'),
             }
             lapply(names(plots), function(pl) {
               pdf(file = file.path(directory, paste0(name, "_", pl, ".pdf")))
-              print(plots[[pl]])
-              dev.off()
+               dev.off()
             })
             
           })
