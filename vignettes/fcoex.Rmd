@@ -26,7 +26,8 @@ The goal of fcoex is to provide a simple and intuitive way to generate co-expres
 - Discretization of gene expression
 - Correlation and module detection via the FCBF algorithm (Fast Correlation-Based Filter)
 
-First of all, we will a already preprocessed single cell dataset from 10XGenomics ( preprocessed according to https://osca.bioconductor.org/a-basic-analysis.html#preprocessing-import-to-r, 14/08/2019). It contains peripheral blood mononuclear cells and the most variable genes.
+First of all, we will a already preprocessed single cell dataset from 10XGenomics ( preprocessed according to the [OSCA pipeline](https://osca.bioconductor.org/a-basic-analysis.html#preprocessing-import-to-r), 14/08/2019).
+It contains peripheral blood mononuclear cells and the most variable genes.
 
 ```{r  Loading datasets, message=FALSE  }
 library(fcoex, quietly = TRUE)
@@ -85,11 +86,12 @@ After the discretization, we proceed to constructing a network and extracting mo
 You can choose either to have a non-parallel processing, with a progress bar, or a faster parallel processing without progress bar. Up to you. 
 
 ```{r Finding cbf modules, message=FALSE }
-fc <- find_cbf_modules(fc,n_genes = 200, verbose = FALSE, is_parallel = FALSE)
+fc <- find_cbf_modules(fc,n_genes_selected_in_first_step = 200, verbose = FALSE, is_parallel = FALSE)
 ```
 
 
-There are two functions that do the same: both get_nets and plot_interactions take the modules and plot networks. You can pick the name you like better. These visualizations were heavily inspired by the CEMiTool package, as much of the code in fcoex.
+The get_nets function takes the modules and plot networks. 
+The visualizations it generates were heavily inspired by the CEMiTool package, as much of the code in fcoex was.
 
 We will take a look at the first two networks 
 
@@ -102,6 +104,7 @@ show_net(fc)[["HLA-DRB1"]]
 ```
 
 To save the plots, you can run the save plots function, which will create a "./Plots" directory and store plots there.
+
 ```{r Saving plots, eval= FALSE, message=FALSE, results='hide'}
 save_plots(name = "fcoex_vignette", fc,force = TRUE, directory = "./Plots")
 ```
@@ -109,19 +112,27 @@ save_plots(name = "fcoex_vignette", fc,force = TRUE, directory = "./Plots")
 ### Running an enrichment analysis
 
 
-You can also run  over-representation analysis to see if the modules correspond to any known biological pathway. In this example we will use the reactome groups available in the CEMiTool package.
+You can also run an over-representation analysis to see if the modules correspond to any known biological pathway. In this example we will use the Reactome groups available in the CEMiTool package.
 
 It is likely that some modules will not have any enrichment, leading to messages of the type "no gene can be mapped.". That is not a problem
 
 ```{r Running ORA analysis, warning=FALSE}
 gmt_fname <- system.file("extdata", "pathways.gmt", package = "CEMiTool")
 
-gmt_in <- pathwayPCA::read_gmt(gmt_fname)
+if (gmt_fname != "")
+  {
+    gmt_in <- pathwayPCA::read_gmt(gmt_fname,  description = TRUE)
+
+} else {
+    print("You likely need to install CEMiTool")
+
+}
 fc <- mod_ora(fc, gmt_in)
 fc <- plot_ora(fc)
 ```
 
-Now we can save the plots again. Note that we have to set the force parameter  equal to TRUE now, as the "./Plots" directory was already created in the previous step. 
+Now we can save the plots again. 
+Note that we have to set the force parameter equal to TRUE now, as the "./Plots" directory was already created in the previous step. 
 
 
 ```{r Saving plots again,  eval= FALSE, message=FALSE, results='hide'}
@@ -133,7 +144,8 @@ save_plots(name = "fcoex_vignette", fc, force = TRUE, directory = "./Plots")
 
 There is now a folder with the correlations, to explore the data. 
 
-We will use the module assignments to subdivide the cells in populations of interest. This is a way to explore the data and look for possible novel groupings ignored in the previous clustering step.
+We will use the module assignments to subdivide the cells in populations of interest. 
+This is a way to explore the data and look for possible novel groupings ignored in the previous clustering step.
 
 ```{r Reclustering , message=FALSE}
 
@@ -141,16 +153,16 @@ fc <- recluster(fc)
 
 ```
 
-We generated new labels based on each fcoex module. Now we will visualize 
-them using UMAP. Let's see the population represented in the modules 
-CD79A and HLA-DRB1. Notably, the patterns are largely influenced by 
-the patterns of header genes. It is interesting to see that two groups 
-are present, header-positive (HP) and header negative (HN) clusters.
+We generated new labels based on each fcoex module. 
+Now we will visualize them using UMAP. 
+Let's see the population represented in the modules CD79A and HLA-DRB1. 
+Notably, the clustering patterns are largely influenced by the expression patterns of header genes. 
+It is interesting to see that two groups are present, header-positive (HP) and header negative (HN) clusters.
 
 The stratification and exploration of different clustering points of view is 
-one of the core
+one of the core features of fcoex.
 
-### Plotting clusters with  scater
+### Plotting clusters with scater
 
 ```{r Visualizing}
 
@@ -173,13 +185,15 @@ grid.arrange(p1, p2, p3, p4, nrow=2)
 ## Integration to Seurat 
 
 
-Another popular framework for single-cell analysis is Seurat. Let's see how to integrate it with fcoex. 
+Another popular framework for single-cell analysis is Seurat.
+Let's see how to integrate it with fcoex. 
 
 
 ```{r Running Seurat pipeline, warning=FALSE}
 library(Seurat)
 library(fcoex)
 library(ggplot2)
+
 data(pbmc_small)
 
 exprs <- data.frame(GetAssayData(pbmc_small))
@@ -192,8 +206,10 @@ fc <- get_nets(fc)
 ```
 
 Once again we can use the Reactome pathways from the package CEMiTool to exemplify how to run an enrichment for human genes.
-It is likely that some modules will not have any enrichment, leading to messages of the type "no gene can be mapped.". That is not a problem.
+It is likely that some modules will not have any enrichment, leading to messages of the type "no gene can be mapped.". 
+That is not a problem.
 If you are not working with human genes, you can just skip this part.
+
 ```{r}
 gmt_fname <- system.file("extdata", "pathways.gmt", package = "CEMiTool")
 gmt_in <- pathwayPCA::read_gmt(gmt_fname)
@@ -278,7 +294,6 @@ As the dataset used here is a small subset of the original, some cells might be 
 
 The modules capture also negative correlations. These can be especially interesting, as they point to complementary cell types.
 Let's look if the module genes are enriched in the cluster HP ( header positive, in blue) or HN (header negative, in green).
-
 
 
 ```{r, message=FALSE}
