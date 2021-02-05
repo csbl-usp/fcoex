@@ -13,6 +13,7 @@ Suggests:
     BiocManager,
     TENxPBMCData,
     scater,
+    schex,
     gridExtra,
     scran,
     Seurat,

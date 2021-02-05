@@ -39,3 +39,6 @@ test_that("module finder works", {
   genes_in_module_for_gene_25 = c("Gene-25", "Gene-34")
   expect_equal(fc@module_list[["Gene-25"]], genes_in_module_for_gene_25)
 })
+
+
+

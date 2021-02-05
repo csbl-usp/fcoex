@@ -166,18 +166,42 @@ one of the core features of fcoex.
 
 ```{r Visualizing}
 
-colData(mini_pbmc3k) <- cbind(colData(mini_pbmc3k), `mod_HLA-DRB1` = idents(fc)$`HLA-DRB1`)
+colData(mini_pbmc3k) <- cbind(colData(mini_pbmc3k), `mod_HLA_DRB1` = idents(fc)$`HLA-DRB1`)
 colData(mini_pbmc3k) <- cbind(colData(mini_pbmc3k), mod_CD79A = idents(fc)$CD79A)
 
-library(scater)
+
 # Let's see the original clusters
-plotReducedDim(mini_pbmc3k, dimred="UMAP", colour_by="clusters")
+library(schex)
+
+mini_pbmc3k <- make_hexbin(mini_pbmc3k, nbins = 40, 
+    dimension_reduction = "UMAP", use_dims=c(1,2))
+
+plot_hexbin_meta(mini_pbmc3k, col="clusters", action="majority")
 
 library(gridExtra)
-p1 <- plotReducedDim(mini_pbmc3k, dimred="UMAP", colour_by="mod_HLA-DRB1")
-p2 <- plotReducedDim(mini_pbmc3k, dimred="UMAP", colour_by="HLA-DRB1")
-p3 <- plotReducedDim(mini_pbmc3k, dimred="UMAP", colour_by="mod_CD79A")
-p4 <- plotReducedDim(mini_pbmc3k, dimred="UMAP", colour_by="CD79A")
+p1 = plot_hexbin_feature_plus(mini_pbmc3k,
+    col="clusters", type="logcounts",
+    feature="CD79A", action="mean") +
+  ggtitle("original clusters (CD79A expression)") +
+  theme_void()
+
+p2 =plot_hexbin_feature_plus(mini_pbmc3k,
+    col="clusters", type="logcounts",
+    feature="HLA-DRB1", action="mean") +
+  ggtitle("original clusters (HLA-DRB1 expression)") +
+  theme_void()
+
+p3 =  plot_hexbin_feature_plus(mini_pbmc3k,
+    col="mod_CD79A", type="logcounts",
+    feature="CD79A", action="mean") +
+  ggtitle("fcoex CD79A clusters (CD79A expression)") +
+  theme_void()
+
+p4 =  plot_hexbin_feature_plus(mini_pbmc3k,
+    col="mod_HLA_DRB1", type="logcounts",
+    feature="HLA-DRB1", action="mean")+
+  ggtitle("fcoex HLA cluster (HLA-DRB1 expression)") +
+  theme_void()
 
 grid.arrange(p1, p2, p3, p4, nrow=2)
 ```
