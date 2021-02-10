@@ -143,13 +143,13 @@ setMethod("discretize", signature("fcoex"),
 #' Caution: it overrides the minimum_su parameter altogether.
 #'
 #' @examples
-#' library(SingleCellExperiment)
-#' data("mini_pbmc3k")
-#' targets <- colData(mini_pbmc3k)$clusters
-#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
-#' fc <- new_fcoex(exprs, targets)
-#' fc <- discretize(fc)
-#' fc <- find_cbf_modules(fc)
+library(SingleCellExperiment)
+data("mini_pbmc3k")
+targets <- colData(mini_pbmc3k)$clusters
+exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
+fc <- new_fcoex(exprs, targets)
+fc <- discretize(fc)
+fc <- find_cbf_modules(fc)
 #' @return Returns a list with the CBF modules found or a adjacency matrix of the graph
 #' @import dplyr
 #' @import parallel
@@ -175,7 +175,7 @@ setMethod("find_cbf_modules", signature("fcoex"),
             
             discretized_exprs <- fc@discretized_expression
             target <- fc@target
-
+            print(FCBF_threshold)
             check_rownames(discretized_exprs)
             
             message('Getting SU scores')
@@ -775,7 +775,7 @@ run_fcbf_for_module_headers <- function(discretized_exprs,
       discretized_exprs,
       target,
       n_genes_selected_in_first_step,
-      minimum_su = FCBF_threshold,
+      minimum_su = minimum_su,
       verbose = verbose
     )
   
