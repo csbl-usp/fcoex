@@ -184,7 +184,7 @@ setMethod("find_cbf_modules", signature("fcoex"),
 
             message('Running FCBF to find module headers')
             
-            minimum_su_for_the_fcbf_algorithm <- get_minimum_su(n_genes_selected_in_first_step, su_to_class, minimum_su)
+            minimum_su_for_the_fcbf_algorithm <- get_minimum_su(n_genes_selected_in_first_step, su_to_class, FCBF_threshold)
 
             module_headers <- run_fcbf_for_module_headers(discretized_exprs,
                                                           target,

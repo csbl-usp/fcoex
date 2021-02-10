@@ -1,0 +1,9 @@
+* using log directory ‘/home/lubianat/Documents/lab_related/fcoex/..Rcheck’
+* using R Under development (unstable) (2021-01-20 r79850)
+* using platform: x86_64-pc-linux-gnu (64-bit)
+* using session charset: UTF-8
+* checking for file ‘./DESCRIPTION’ ... ERROR
+Required fields missing or empty:
+  ‘Author’ ‘Maintainer’
+* DONE
+Status: 1 ERROR
