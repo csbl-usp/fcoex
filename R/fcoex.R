@@ -144,12 +144,12 @@ setMethod("discretize", signature("fcoex"),
 #'
 #' @examples
 library(SingleCellExperiment)
-data("mini_pbmc3k")
-targets <- colData(mini_pbmc3k)$clusters
-exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
-fc <- new_fcoex(exprs, targets)
-fc <- discretize(fc)
-fc <- find_cbf_modules(fc)
+#' data("mini_pbmc3k")
+#' targets <- colData(mini_pbmc3k)$clusters
+#' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
+#' fc <- new_fcoex(exprs, targets)
+#' fc <- discretize(fc)
+#' fc <- find_cbf_modules(fc)
 #' @return Returns a list with the CBF modules found or a adjacency matrix of the graph
 #' @import dplyr
 #' @import parallel

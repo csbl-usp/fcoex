@@ -19,6 +19,8 @@ A plot corresponding to a fcoex analysis
 Retrieve fcoex net plots
 }
 \examples{
+\dontrun{
 data("fc")
 show_net(fc)
+}
 }

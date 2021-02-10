@@ -234,8 +234,10 @@ setMethod("mod_colors", signature("fcoex"),
 #' @param fc Object of class \code{fcoex}.
 #' @return A plot corresponding to a fcoex analysis
 #' @examples 
+#' \dontrun{
 #' data("fc")
 #' show_net(fc)
+#' }
 #' @rdname show_net
 #' @export
 setGeneric('show_net', function(fc) {
