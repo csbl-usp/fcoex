@@ -441,8 +441,10 @@ plot_ora_single <-
 #' @param force If the directory exists, execution will not stop.
 #' @return A pdf file or files with the desired plot(s)
 #' @examples 
+#' \dontrun{
 #' data(fc)
 #' save_plots(fc, name = "Example")
+#' }
 #' @rdname save_plots
 #' @export
 setGeneric('save_plots', function(fc, name,
