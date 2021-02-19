@@ -18,7 +18,7 @@ target <- as.factor(c(rep("A",50), rep("B",50)))
 
 fc <- new("fcoex", expression=my_counts_df, target)
 fc <- discretize(fc)
-fc <- find_cbf_modules(fc, n_genes_selected_in_first_step = 15, is_parallel = TRUE)
+fc <- find_cbf_modules(fc, n_genes_selected_in_first_step = 15, is_parallel = FALSE)
 
 
 
