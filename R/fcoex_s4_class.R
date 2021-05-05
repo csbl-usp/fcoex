@@ -1,7 +1,7 @@
 
-setOldClass('gg')
-setOldClass('ggplot')
-setOldClass('gtable')
+setOldClass("gg")
+setOldClass("ggplot")
+setOldClass("gtable")
 
 #' An S4 class to represent the fcoex analysis.
 #'
@@ -29,31 +29,33 @@ setOldClass('gtable')
 #' Determined by the "recluster" method
 #' @slot parameters \code{list} containing analysis parameters.
 setClass(
-  'fcoex',
+  "fcoex",
   slots = list(
-    expression = 'data.frame',
-    discretized_expression = 'data.frame',
-    target = 'factor',
-    selected_genes = 'vector',
-    module_list = 'list',
-    adjacency = 'list',
-    adjacency_trimmed = 'list',
-    coex_network_plot = 'list',
-    new_clusters = 'list',
-    mod_colors = 'character',
-    parameters = 'list',
-    ora = 'data.frame',
-    barplot_ora = 'list',
-    mod_idents = 'list'
+    expression = "data.frame",
+    discretized_expression = "data.frame",
+    target = "factor",
+    selected_genes = "vector",
+    module_list = "list",
+    adjacency = "list",
+    adjacency_trimmed = "list",
+    coex_network_plot = "list",
+    new_clusters = "list",
+    mod_colors = "character",
+    parameters = "list",
+    ora = "data.frame",
+    barplot_ora = "list",
+    mod_idents = "list"
   )
 )
 
-setMethod("initialize", signature = "fcoex",
-          function(.Object, expression, target) {
-            .Object@expression <- expression
-            .Object@target <- target
-            return(.Object)
-          })
+setMethod("initialize",
+  signature = "fcoex",
+  function(.Object, expression, target) {
+    .Object@expression <- expression
+    .Object@target <- target
+    return(.Object)
+  }
+)
 
 #' Create a fcoex object
 #'
@@ -68,7 +70,6 @@ setMethod("initialize", signature = "fcoex",
 #' targets <- colData(mini_pbmc3k)$clusters
 #' exprs <- as.data.frame(assay(mini_pbmc3k, "logcounts"))
 #' fc <- new_fcoex(exprs, targets)
-
 #' @export
 new_fcoex <-
   function(expression = data.frame(),

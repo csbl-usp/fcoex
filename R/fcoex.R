@@ -3,6 +3,8 @@
 # located inside the source code for CEMiTool functions.
 # Functions that contained adapted code were explicit denoted.
 
+# Imports ---------
+
 #' @importFrom grDevices rainbow dev.off pdf
 #' @importFrom utils write.table head
 #' @importFrom stats cutree dist hclust
@@ -11,6 +13,9 @@
 #' @import SingleCellExperiment
 #' @import dplyr
 NULL
+
+
+# Discretize expression ---------
 
 setOldClass("fcoex")
 
@@ -69,56 +74,35 @@ setGeneric("discretize", function(fc,
 })
 
 #' @rdname discretize
-setMethod("discretize", signature("fcoex"),
-          function(fc,
-                   number_of_bins = 4,
-                   method = "varying_width",
-                   alpha = 1,
-                   centers = 3,
-                   min_max_cutoff = 0.25,
-                   show_pb = TRUE) {
-            expression_table <- fc@expression
-            discretized_expression <-
-              FCBF::discretize_exprs(expression_table,
-                                     number_of_bins,
-                                     method,
-                                     alpha,
-                                     centers,
-                                     min_max_cutoff,
-                                     show_pb)
-            colnames(discretized_expression) <-
-              colnames(expression_table)
-            fc@discretized_expression <- discretized_expression
-            
-            return(fc)
-          })
+setMethod(
+  "discretize", signature("fcoex"),
+  function(fc,
+           number_of_bins = 4,
+           method = "varying_width",
+           alpha = 1,
+           centers = 3,
+           min_max_cutoff = 0.25,
+           show_pb = TRUE) {
+    expression_table <- fc@expression
+    discretized_expression <-
+      FCBF::discretize_exprs(
+        expression_table,
+        number_of_bins,
+        method,
+        alpha,
+        centers,
+        min_max_cutoff,
+        show_pb
+      )
+    colnames(discretized_expression) <-
+      colnames(expression_table)
+    fc@discretized_expression <- discretized_expression
 
+    return(fc)
+  }
+)
 
-#' .get_correlates
-#'
-#' auxiliary function for find_cbf_modules
-#' @param i A gene to be correlated
-#' @param gene_by_gene_su_correlation the dataframe with the correlations to be updated
-#' @param discretized_exprs the dataframe with discretized expression
-#' to extract a gene
-#' @param expression_table_only_with_genes_with_high_su the dataframe to after the filtering step
-#' @return the updated column of the gene_by_gene_su_correlation
-.get_correlates <- function(i,
-                            gene_by_gene_su_correlation,
-                            discretized_exprs,
-                            expression_table_only_with_genes_with_high_su) {
-  gene_i <- as.factor(discretized_exprs[i, ])
-  gene_i_correlates <-
-    FCBF::get_su_for_feature_table_and_vector(feature_table = expression_table_only_with_genes_with_high_su,
-                                              target_vector = as.factor(expression_table_only_with_genes_with_high_su[i, ]))
-  gene_i_correlates$gene <-
-    change_dots_for_dashes(rownames(gene_i_correlates))
-  gene_i_correlates <-
-    gene_i_correlates[match(gene_by_gene_su_correlation$genes, gene_i_correlates$gene),]
-  colnames(gene_i_correlates)[1] <- i
-  gene_by_gene_su_correlation[, i] <- gene_i_correlates[, 1]
-  gene_by_gene_su_correlation[, i]
-}
+# Find CBF modules ------
 
 #' find_cbf_modules
 #'
@@ -166,78 +150,112 @@ setGeneric("find_cbf_modules", function(fc,
 })
 
 #' @rdname find_cbf_modules
-setMethod("find_cbf_modules", signature("fcoex"),
-          function(fc,
-                   n_genes_selected_in_first_step = NULL,
-                   FCBF_threshold = 0.1,
-                   verbose = TRUE,
-                   is_parallel = FALSE) {
-            
-            discretized_exprs <- fc@discretized_expression
-            target <- fc@target
-            print(FCBF_threshold)
-            check_rownames(discretized_exprs)
-            
-            message('Getting SU scores')
-            
-            su_to_class <- get_su_ranking_in_relation_to_class(discretized_exprs, target)
+setMethod(
+  "find_cbf_modules", signature("fcoex"),
+  function(fc,
+           n_genes_selected_in_first_step = NULL,
+           FCBF_threshold = 0.1,
+           verbose = TRUE,
+           is_parallel = FALSE) {
+    discretized_exprs <- fc@discretized_expression
+    target <- fc@target
+    print(FCBF_threshold)
+    check_rownames(discretized_exprs)
 
-            message('Running FCBF to find module headers')
-            
-            minimum_su_for_the_fcbf_algorithm <- get_minimum_su(n_genes_selected_in_first_step, su_to_class, FCBF_threshold)
+    message("Getting SU scores")
 
-            module_headers <- run_fcbf_for_module_headers(discretized_exprs,
-                                                          target,
-                                                          n_genes_selected_in_first_step,
-                                                          minimum_su = minimum_su_for_the_fcbf_algorithm,
-                                                          verbose = verbose)
-            
-            su_to_class_higher_than_minimum_su <-
-              su_to_class[su_to_class[1] > minimum_su_for_the_fcbf_algorithm,]
-            
-            genes_from_su_ranking <- change_dots_for_dashes(su_to_class_higher_than_minimum_su[, 2])
-            
-            expression_table_only_with_genes_with_high_su <- discretized_exprs[genes_from_su_ranking ,]
-        
-            message('Calculating adjacency matrix')
-            
-            if (!is_parallel) {
-              gene_by_gene_su_correlation <- get_gene_by_gene_correlation_matrix_in_series(genes_from_su_ranking, 
-                                                                                 expression_table_only_with_genes_with_high_su)
-              
-            }  else {
-              gene_by_gene_su_correlation <- get_gene_by_gene_correlation_matrix_in_parallel(genes_from_su_ranking, 
-                                                                                           expression_table_only_with_genes_with_high_su,
-                                                                                           discretized_exprs,
-                                                                                           su_to_class_higher_than_minimum_su)
-            }
-            
-            message('Trimming and getting modules from adjacency matrix')
-            
-            filtered_gene_by_gene_su_correlation <- trim_correlation_matrix(genes_from_su_ranking,
-                                                                            gene_by_gene_su_correlation,
-                                                                            su_to_class,
-                                                                            su_to_class_higher_than_minimum_su)
-            
-            list_of_fcbf_modules <- get_list_of_modules(module_headers, filtered_gene_by_gene_su_correlation)
-          
-            fc@selected_genes <- genes_from_su_ranking
-            fc@adjacency <- gene_by_gene_su_correlation
-            fc@adjacency_trimmed <- filtered_gene_by_gene_su_correlation
-            fc@module_list <- list_of_fcbf_modules
-            return(fc)
-          })
+    su_to_class <- get_su_ranking_in_relation_to_class(discretized_exprs, target)
+
+    message("Running FCBF to find module headers")
+
+    minimum_su_for_the_fcbf_algorithm <- get_minimum_su(n_genes_selected_in_first_step, su_to_class, FCBF_threshold)
+
+    module_headers <- run_fcbf_for_module_headers(discretized_exprs,
+      target,
+      n_genes_selected_in_first_step,
+      minimum_su = minimum_su_for_the_fcbf_algorithm,
+      verbose = verbose
+    )
+
+    su_to_class_higher_than_minimum_su <-
+      su_to_class[su_to_class[1] > minimum_su_for_the_fcbf_algorithm, ]
+
+    genes_from_su_ranking <- change_dots_for_dashes(su_to_class_higher_than_minimum_su[, 2])
+
+    expression_table_only_with_genes_with_high_su <- discretized_exprs[genes_from_su_ranking, ]
+
+    message("Calculating adjacency matrix")
+
+    if (!is_parallel) {
+      gene_by_gene_su_correlation <- get_gene_by_gene_correlation_matrix_in_series(
+        genes_from_su_ranking,
+        expression_table_only_with_genes_with_high_su
+      )
+    } else {
+      gene_by_gene_su_correlation <- get_gene_by_gene_correlation_matrix_in_parallel(
+        genes_from_su_ranking,
+        expression_table_only_with_genes_with_high_su,
+        discretized_exprs,
+        su_to_class_higher_than_minimum_su
+      )
+    }
+
+    message("Trimming and getting modules from adjacency matrix")
+
+    filtered_gene_by_gene_su_correlation <- trim_correlation_matrix(
+      genes_from_su_ranking,
+      gene_by_gene_su_correlation,
+      su_to_class,
+      su_to_class_higher_than_minimum_su
+    )
+
+    list_of_fcbf_modules <- get_list_of_modules(module_headers, filtered_gene_by_gene_su_correlation)
+
+    fc@selected_genes <- genes_from_su_ranking
+    fc@adjacency <- gene_by_gene_su_correlation
+    fc@adjacency_trimmed <- filtered_gene_by_gene_su_correlation
+    fc@module_list <- list_of_fcbf_modules
+    return(fc)
+  }
+)
 
 
-##### Functions extracted from "find_cbf_modules" ##### 
+## Functions extracted from "find_cbf_modules" ------
 
+#' .get_correlates
+#'
+#' auxiliary function for find_cbf_modules
+#' @param i A gene to be correlated
+#' @param gene_by_gene_su_correlation the dataframe with the correlations to be updated
+#' @param discretized_exprs the dataframe with discretized expression
+#' to extract a gene
+#' @param expression_table_only_with_genes_with_high_su the dataframe to after the filtering step
+#' @return the updated column of the gene_by_gene_su_correlation
+.get_correlates <- function(i,
+                            gene_by_gene_su_correlation,
+                            discretized_exprs,
+                            expression_table_only_with_genes_with_high_su) {
+  gene_i <- as.factor(discretized_exprs[i, ])
+  gene_i_correlates <-
+    FCBF::get_su_for_feature_table_and_vector(
+      feature_table = expression_table_only_with_genes_with_high_su,
+      target_vector = as.factor(expression_table_only_with_genes_with_high_su[i, ])
+    )
+  gene_i_correlates$gene <-
+    change_dots_for_dashes(rownames(gene_i_correlates))
+  gene_i_correlates <-
+    gene_i_correlates[match(gene_by_gene_su_correlation$genes, gene_i_correlates$gene), ]
+  colnames(gene_i_correlates)[1] <- i
+  gene_by_gene_su_correlation[, i] <- gene_i_correlates[, 1]
+  gene_by_gene_su_correlation[, i]
+}
 
 check_rownames <- function(discretized_exprs) {
-  first_name_in_rows = rownames(discretized_exprs)[1]
-  if (first_name_in_rows == "1"){
+  first_name_in_rows <- rownames(discretized_exprs)[1]
+  if (first_name_in_rows == "1") {
     stop("The discretized dataframe does not have rownames. That makes fcoex sad! Please, rerun the discretize(fc) method for a expression table with rownames.")
   }
-  if (any(grepl(" ", rownames(discretized_exprs)))){
+  if (any(grepl(" ", rownames(discretized_exprs)))) {
     stop("Oops, there are spaces in at least one of your rownames. That makes fcoex sad! Please, rerun the discretize(fc) method for a expression table with rownames without space.")
   }
 }
@@ -246,21 +264,23 @@ get_su_ranking_in_relation_to_class <- function(discretized_exprs, target) {
   su_to_class <-
     FCBF::get_su_for_feature_table_and_vector(discretized_exprs, target)
   su_to_class$gene <- change_dots_for_dashes(rownames(su_to_class))
-  colnames(su_to_class)[1] <- 'SU'
+  colnames(su_to_class)[1] <- "SU"
   return(su_to_class)
 }
 
 get_minimum_su <- function(n_genes_selected_in_first_step, su_to_class, minimum_su) {
   # Heuristic to get a minimum_su when user inputs number of genes
-  
-  if(length(n_genes_selected_in_first_step)) {
+
+  if (length(n_genes_selected_in_first_step)) {
     minimum_su <- su_to_class$SU[n_genes_selected_in_first_step]
     return(minimum_su)
-  } else{
+  } else {
     return(minimum_su)
   }
-  
 }
+
+
+# Acessing the fcoex object -------
 
 #' Get the number of modules in a fcoex object
 #'
@@ -274,26 +294,24 @@ get_minimum_su <- function(n_genes_selected_in_first_step, su_to_class, minimum_
 #' @examples
 #' data("fc")
 #' nmodules(fc)
-#'
 #' @export
-setGeneric('nmodules', function(fc) {
-  standardGeneric('nmodules')
+setGeneric("nmodules", function(fc) {
+  standardGeneric("nmodules")
 })
 
 #' @rdname nmodules
-setMethod('nmodules', signature('fcoex'),
-          function(fc) {
-            n <- 0
-            if ((length(fc@module_list)) > 0) {
-              n <- length(fc@module_list)
-            } else {
-              warning("Run find_cbf_modules function to get modules!")
-            }
-            return(n)
-          })
-
-
-
+setMethod(
+  "nmodules", signature("fcoex"),
+  function(fc) {
+    n <- 0
+    if ((length(fc@module_list)) > 0) {
+      n <- length(fc@module_list)
+    } else {
+      warning("Run find_cbf_modules function to get modules!")
+    }
+    return(n)
+  }
+)
 
 #' Get the number of genes in modules in a fcoex object
 #' This function was copied and adapted from the CEMiTool package.
@@ -308,32 +326,31 @@ setMethod('nmodules', signature('fcoex'),
 #'
 #' @rdname mod_gene_num
 #' @export
-setGeneric('mod_gene_num', function(fc, module = NULL) {
-  standardGeneric('mod_gene_num')
+setGeneric("mod_gene_num", function(fc, module = NULL) {
+  standardGeneric("mod_gene_num")
 })
 #' @rdname mod_gene_num
-setMethod('mod_gene_num', signature(fc = 'fcoex'),
-          function(fc, module = NULL) {
-            if (!is.null(module)) {
-              if (!(all(module %in% mod_names(fc)))) {
-                stop("Module '", module, "' not in fcoex object!")
-              }
-            }
-            if (!length(module_genes(fc)) > 0) {
-              stop("No modules in fcoex object!")
-            }
-            if (!is.null(module)) {
-              mod_genes <- fc@module_list[[module]]
-              return(mod_genes)
-            }
-            
-            if (is.null(module)) {
-              stop("No modules selected!")
-            }
-            
-          })
+setMethod(
+  "mod_gene_num", signature(fc = "fcoex"),
+  function(fc, module = NULL) {
+    if (!is.null(module)) {
+      if (!(all(module %in% mod_names(fc)))) {
+        stop("Module '", module, "' not in fcoex object!")
+      }
+    }
+    if (!length(module_genes(fc)) > 0) {
+      stop("No modules in fcoex object!")
+    }
+    if (!is.null(module)) {
+      mod_genes <- fc@module_list[[module]]
+      return(mod_genes)
+    }
 
-
+    if (is.null(module)) {
+      stop("No modules selected!")
+    }
+  }
+)
 
 #' Get module names in a fcoex object
 #'
@@ -349,21 +366,23 @@ setMethod('mod_gene_num', signature(fc = 'fcoex'),
 #' mod_names(fc)
 #' @rdname mod_names
 #' @export
-setGeneric('mod_names', function(fc, include_NC = TRUE) {
-  standardGeneric('mod_names')
+setGeneric("mod_names", function(fc, include_NC = TRUE) {
+  standardGeneric("mod_names")
 })
 
 #' @rdname mod_names
-setMethod('mod_names', signature(fc = 'fcoex'),
-          function(fc, include_NC = TRUE) {
-            mods <- NULL
-            if (length(fc@module_list) > 0) {
-              mods <- names(fc@module_list)
-            } else {
-              warning("No modules in this fcoex object.")
-            }
-            return(mods)
-          })
+setMethod(
+  "mod_names", signature(fc = "fcoex"),
+  function(fc, include_NC = TRUE) {
+    mods <- NULL
+    if (length(fc@module_list) > 0) {
+      mods <- names(fc@module_list)
+    } else {
+      warning("No modules in this fcoex object.")
+    }
+    return(mods)
+  }
+)
 
 
 #' Get the module genes in a fcoex object
@@ -383,31 +402,33 @@ setMethod('mod_names', signature(fc = 'fcoex'),
 #' data("fc")
 #' module_genes(fc)
 #' @export
-setGeneric('module_genes', function(fc, module = NULL) {
-  standardGeneric('module_genes')
+setGeneric("module_genes", function(fc, module = NULL) {
+  standardGeneric("module_genes")
 })
 
 #' @rdname module_genes
-setMethod('module_genes', signature(fc = 'fcoex'),
-          function(fc, module = NULL) {
-            #mod_names <- unique(fc@module[, "modules"])
-            res <- NULL
-            if (length(fc@module_list) > 0) {
-              res <- fc@module_list
-            } else{
-              message("No modules in this fcoex object.")
-              return(res)
-            }
-            mod_names <- names(fc@module_list)
-            if (!is.null(module)) {
-              if (module %in% mod_names) {
-                res <- res[names(res) == module]
-              } else{
-                stop("Undefined module!")
-              }
-            }
-            return(res)
-          })
+setMethod(
+  "module_genes", signature(fc = "fcoex"),
+  function(fc, module = NULL) {
+    # mod_names <- unique(fc@module[, "modules"])
+    res <- NULL
+    if (length(fc@module_list) > 0) {
+      res <- fc@module_list
+    } else {
+      message("No modules in this fcoex object.")
+      return(res)
+    }
+    mod_names <- names(fc@module_list)
+    if (!is.null(module)) {
+      if (module %in% mod_names) {
+        res <- res[names(res) == module]
+      } else {
+        stop("Undefined module!")
+      }
+    }
+    return(res)
+  }
+)
 
 #' Print a fcoex object
 #'
@@ -418,114 +439,44 @@ setMethod('module_genes', signature(fc = 'fcoex'),
 #' data("fc")
 #' fc
 #' @export
-setMethod('show', signature(object = 'fcoex'),
-          function(object) {
-            cat("fcoex Object\n")
-            cat("- Number of modules:", suppressWarnings(nmodules(object)),
-                "\n")
-            cat("- Module headers: \n")
-            if (length(object@module_list) == 0) {
-              cat("null\n")
-            } else {
-              cat(names(object@module_list), sep = ", ")
-              cat('\n')
-            }
-            cat("- Expression file: ")
-            if (nrow(object@expression) == 0) {
-              cat("null\n")
-            } else {
-              cat(
-                "data.frame with",
-                nrow(object@expression),
-                "genes and",
-                ncol(object@expression),
-                "cells\n"
-              )
-            }
-            if (is.character(object@selected_genes)) {
-              if (length(object@selected_genes) != nrow(object@expression)) {
-                cat("- Selected data:",
-                    length(object@selected_genes),
-                    "genes selected\n")
-              }
-            }
-          })
-
-#' # Run module overrepresentation analysis
-#'
-#' This function was modified from the CEMiTool package.
-#' Chunks of code were retained "as is"
-#'
-#' @param fc A fcoex object.
-#' @param gmt A gmt file with gene sets for ora analysis
-#' @param verbose Controls verbosity. Defaults to FALSE.
-#' @examples
-#' data("fc")
-#' gmt_fname <- system.file("extdata", "pathways.gmt", package = "CEMiTool")
-#' gmt_in <- pathwayPCA::read_gmt(gmt_fname)
-#' fc <- mod_ora(fc, gmt_in)
-#' @return  A fcoex object containing over-representation analysis data
-#' @rdname mod_ora
-#' @export
-setGeneric('mod_ora', function(fc, gmt, verbose = FALSE) {
-  standardGeneric('mod_ora')
-})
-
-#' @rdname mod_ora
-setMethod('mod_ora', signature('fcoex'),
-          function(fc, gmt, verbose = FALSE) {
-            if (!is(gmt, "pathwayCollection")) {
-              stop(
-                "The gmt object must be loaded via pathwayPCA::read_gmt and be a pathwayCollectionobject"
-              )
-            }
-            
-            pathwayPCA_gmt <- gmt
-            gmt_df <- pathwayPCA_gmt$pathways
-            
-            gmt_df <-
-              as.data.frame(unlist(gmt_df), use.names = TRUE)
-            pathway_sizes <-
-              unlist(lapply(pathwayPCA_gmt$pathways, length))
-            colnames(gmt_df) <- "gene"
-            gmt_df$term <- rep(pathwayPCA_gmt$TERMS, pathway_sizes)
-            
-            
-            gmt_df <- gmt_df[, c("term", "gene")]
-            
-            
-            if (verbose) {
-              message('Running ORA')
-              message("Using all genes in GMT file as universe.")
-            }
-            allgenes <- unique(gmt_df[, "gene"])
-            if (is.null(fc@module_list)) {
-              warning("No modules in fcoex object! Did you run find_cbf_modules()?")
-              return(fc)
-            }
-            mods <- fc@module_list
-            res_list <-
-              lapply(names(mods), ora, gmt_df, allgenes, mods)
-            if (all(lapply(res_list, nrow) == 0)) {
-              warning(
-                "Enrichment is NULL. Either your gmt file is inadequate or your modules really aren't enriched for any of the pathways in the gmt file."
-              )
-              return(fc)
-            }
-            names(res_list) <- names(mods)
-            
-            res <- lapply(names(res_list), function(x) {
-              if (nrow(res_list[[x]]) > 0) {
-                as.data.frame(cbind(x, res_list[[x]]))
-              }
-            })
-            res <- do.call(rbind, res)
-            names(res)[names(res) == "x"] <- "Module"
-            
-            rownames(res) <- NULL
-            fc@ora <- res
-            return(fc)
-          })
+setMethod(
+  "show", signature(object = "fcoex"),
+  function(object) {
+    cat("fcoex Object\n")
+    cat(
+      "- Number of modules:", suppressWarnings(nmodules(object)),
+      "\n"
+    )
+    cat("- Module headers: \n")
+    if (length(object@module_list) == 0) {
+      cat("null\n")
+    } else {
+      cat(names(object@module_list), sep = ", ")
+      cat("\n")
+    }
+    cat("- Expression file: ")
+    if (nrow(object@expression) == 0) {
+      cat("null\n")
+    } else {
+      cat(
+        "data.frame with",
+        nrow(object@expression),
+        "genes and",
+        ncol(object@expression),
+        "cells\n"
+      )
+    }
+    if (is.character(object@selected_genes)) {
+      if (length(object@selected_genes) != nrow(object@expression)) {
+        cat(
+          "- Selected data:",
+          length(object@selected_genes),
+          "genes selected\n"
+        )
+      }
+    }
+  }
+)
 
 #' Retrieve over representation analysis (ORA) results
 #'
@@ -557,10 +508,12 @@ setGeneric("ora_data", function(fc) {
 })
 
 #' @rdname ora_data
-setMethod("ora_data", signature("fcoex"),
-          function(fc) {
-            return(fc@ora)
-          })
+setMethod(
+  "ora_data", signature("fcoex"),
+  function(fc) {
+    return(fc@ora)
+  }
+)
 
 
 
@@ -579,58 +532,57 @@ setMethod("ora_data", signature("fcoex"),
 #' @rdname recluster
 setGeneric("recluster", function(fc,
                                  hclust_method = "ward.D2",
-                                 dist_method = 'manhattan',
+                                 dist_method = "manhattan",
                                  k = 2,
                                  verbose = TRUE) {
   standardGeneric("recluster")
 })
 #' @rdname recluster
-setMethod("recluster", signature("fcoex"),
-          function(fc,
-                   hclust_method = "ward.D2",
-                   dist_method = 'manhattan',
-                   k = 2,
-                   verbose = TRUE) {
-            mod_idents <- list()
-            
-            if (verbose) {
-              message("Detecting clusters for the following modules: ")
-            }
-            
-            for (i in names(fc@module_list)) {
-              if (verbose) {
-                message(print(i))
-              }
-              expression_table <-
-                fc@expression[fc@module_list[[i]],]
-              d <-
-                dist(t(as.matrix(expression_table)), method = dist_method)
-              hc <- hclust(d, method = hclust_method)
-              idents <- as.factor(cutree(hc, k))
-              
-              if (k == 2) {
-                mean_1 <-  mean(as.numeric(fc@expression[i, ][idents == 1]))
-                mean_2 <-
-                  mean(as.numeric(fc@expression[i, ][idents == 2]))
-                if (mean_1 > mean_2) {
-                  # The first cluster will be the header positive cluster
-                  first = "HP"
-                  second = "HN"
-                } else {
-                  # The first cluster will be the header negative cluster
-                  first = "HN"
-                  second = "HP"
-                }
-                idents <- ifelse(idents == 1, first, second)
-                
-              }
-              mod_idents[[i]] <- as.factor(idents)
-            }
-            fc@mod_idents <- mod_idents
-            return(fc)
-          })
+setMethod(
+  "recluster", signature("fcoex"),
+  function(fc,
+           hclust_method = "ward.D2",
+           dist_method = "manhattan",
+           k = 2,
+           verbose = TRUE) {
+    mod_idents <- list()
 
+    if (verbose) {
+      message("Detecting clusters for the following modules: ")
+    }
 
+    for (i in names(fc@module_list)) {
+      if (verbose) {
+        message(print(i))
+      }
+      expression_table <-
+        fc@expression[fc@module_list[[i]], ]
+      d <-
+        dist(t(as.matrix(expression_table)), method = dist_method)
+      hc <- hclust(d, method = hclust_method)
+      idents <- as.factor(cutree(hc, k))
+
+      if (k == 2) {
+        mean_1 <- mean(as.numeric(fc@expression[i, ][idents == 1]))
+        mean_2 <-
+          mean(as.numeric(fc@expression[i, ][idents == 2]))
+        if (mean_1 > mean_2) {
+          # The first cluster will be the header positive cluster
+          first <- "HP"
+          second <- "HN"
+        } else {
+          # The first cluster will be the header negative cluster
+          first <- "HN"
+          second <- "HP"
+        }
+        idents <- ifelse(idents == 1, first, second)
+      }
+      mod_idents[[i]] <- as.factor(idents)
+    }
+    fc@mod_idents <- mod_idents
+    return(fc)
+  }
+)
 
 #' Retrieves module identities from the recluster function
 #'
@@ -652,67 +604,66 @@ setGeneric("idents", function(fc) {
 })
 
 #' @rdname idents
-setMethod("idents", signature("fcoex"),
-          function(fc) {
-            return(fc@mod_idents)
-          })
+setMethod(
+  "idents", signature("fcoex"),
+  function(fc) {
+    return(fc@mod_idents)
+  }
+)
 
+# Auxiliary functions ------
 
-###### auxiliary functions #####
-
-
-change_dots_for_dashes <- function(vector_of_genes){
-  gsub('\\.', '-', vector_of_genes)
+change_dots_for_dashes <- function(vector_of_genes) {
+  gsub("\\.", "-", vector_of_genes)
 }
 
 
-get_gene_by_gene_correlation_matrix_in_series <- function(genes_from_su_ranking, 
-                                    expression_table_only_with_genes_with_high_su){
-  
-  gene_by_gene_su_correlation <- data.frame(genes =  genes_from_su_ranking)
-  
-  pb_findclusters <- progress_bar$new(total = length(genes_from_su_ranking),
-                                      format =   "[:bar] :percent eta:
-                                                  :eta")
+get_gene_by_gene_correlation_matrix_in_series <- function(genes_from_su_ranking,
+                                                          expression_table_only_with_genes_with_high_su) {
+  gene_by_gene_su_correlation <- data.frame(genes = genes_from_su_ranking)
+
+  pb_findclusters <- progress_bar$new(
+    total = length(genes_from_su_ranking),
+    format = "[:bar] :percent eta:
+                                                  :eta"
+  )
   for (gene_i in genes_from_su_ranking) {
-    
     print(gene_i)
     pb_findclusters$tick()
-    
+
     discrete_vector_of_gene_i <- as.factor(expression_table_only_with_genes_with_high_su[gene_i, ])
-    
+
     gene_i_correlates <-
-      FCBF::get_su_for_feature_table_and_vector(feature_table = expression_table_only_with_genes_with_high_su,
-                                                target_vector = as.factor(discrete_vector_of_gene_i))
-    
+      FCBF::get_su_for_feature_table_and_vector(
+        feature_table = expression_table_only_with_genes_with_high_su,
+        target_vector = as.factor(discrete_vector_of_gene_i)
+      )
+
     gene_i_correlates$gene <- change_dots_for_dashes(rownames(gene_i_correlates))
-    
+
     # Reordering rows
     gene_i_correlates <-
-      gene_i_correlates[match(gene_by_gene_su_correlation$genes, gene_i_correlates$gene),]
-    
+      gene_i_correlates[match(gene_by_gene_su_correlation$genes, gene_i_correlates$gene), ]
+
     colnames(gene_i_correlates)[1] <- gene_i
-    
+
     gene_by_gene_su_correlation[, gene_i] <- gene_i_correlates[, 1]
-    
   }
-  
-  gene_by_gene_su_correlation <- gene_by_gene_su_correlation[,-1]
-  
-  
+
+  gene_by_gene_su_correlation <- gene_by_gene_su_correlation[, -1]
+
+
   return(gene_by_gene_su_correlation)
-  
-  
 }
 
-get_gene_by_gene_correlation_matrix_in_parallel<- function(genes_from_su_ranking, 
-                                                expression_table_only_with_genes_with_high_su,
-                                                discretized_exprs,
-                                                su_to_class_higher_than_minimum_su){
-  
+get_gene_by_gene_correlation_matrix_in_parallel <- function(genes_from_su_ranking,
+                                                            expression_table_only_with_genes_with_high_su,
+                                                            discretized_exprs,
+                                                            su_to_class_higher_than_minimum_su) {
+
   # get and adjacency matrix for gene to gene correlation
-  gene_by_gene_su_correlation <- data.frame(genes =  genes_from_su_ranking)
-  
+  gene_by_gene_su_correlation <- data.frame(genes = genes_from_su_ranking)
+
   cl <- detectCores() - 2
   bla <- mclapply(genes_from_su_ranking, function(i) {
     .get_correlates(i, gene_by_gene_su_correlation, discretized_exprs, expression_table_only_with_genes_with_high_su)
@@ -720,57 +671,53 @@ get_gene_by_gene_correlation_matrix_in_parallel<- function(genes_from_su_ranking
   gene_by_gene_su_correlation <- as.data.frame(bla)
   rownames(gene_by_gene_su_correlation) <- su_to_class_higher_than_minimum_su$gene
   colnames(gene_by_gene_su_correlation) <- su_to_class_higher_than_minimum_su$gene
-  
+
   return(gene_by_gene_su_correlation)
-  
 }
 
 trim_correlation_matrix <- function(genes_from_su_ranking,
-                        gene_by_gene_su_correlation,
-                        su_to_class,
-                        su_to_class_higher_than_minimum_su){
+                                    gene_by_gene_su_correlation,
+                                    su_to_class,
+                                    su_to_class_higher_than_minimum_su) {
+  filtered_gene_by_gene_su_correlation <- data.frame(genes = genes_from_su_ranking)
 
-filtered_gene_by_gene_su_correlation <- data.frame(genes =  genes_from_su_ranking)
+  for (i in colnames(gene_by_gene_su_correlation)) {
+    tf_vector <-
+      gene_by_gene_su_correlation[, i] > su_to_class$SU[seq_along(su_to_class_higher_than_minimum_su$gene)]
+    filtered_gene_by_gene_su_correlation[, i] <- gene_by_gene_su_correlation[, i] * tf_vector
+  }
 
-for (i in colnames(gene_by_gene_su_correlation)) {
-  tf_vector <-
-    gene_by_gene_su_correlation[, i] > su_to_class$SU[seq_along(su_to_class_higher_than_minimum_su$gene)]
-  filtered_gene_by_gene_su_correlation[, i] <- gene_by_gene_su_correlation[, i] * tf_vector
+  return(filtered_gene_by_gene_su_correlation)
 }
 
-return(filtered_gene_by_gene_su_correlation)
-}
 
-
-get_list_of_modules <- function(genes_from_fcbf_filter, filtered_gene_by_gene_su_correlation){
-  
+get_list_of_modules <- function(genes_from_fcbf_filter, filtered_gene_by_gene_su_correlation) {
   list_of_fcbf_modules <- list()
-  
+
   for (seed in genes_from_fcbf_filter) {
     print(seed)
-    
-    correlated_genes_score = filtered_gene_by_gene_su_correlation[, seed]
-    
+
+    correlated_genes_score <- filtered_gene_by_gene_su_correlation[, seed]
+
     module_members <-
-      as.character(filtered_gene_by_gene_su_correlation$genes[correlated_genes_score >0])
-    
+      as.character(filtered_gene_by_gene_su_correlation$genes[correlated_genes_score > 0])
+
     module_members <- module_members[!is.na(module_members)]
     if (length(module_members) > 1) {
       list_of_fcbf_modules[[seed]] <- module_members
     }
   }
-  
+
   return(list_of_fcbf_modules)
-  
 }
 
 
 run_fcbf_for_module_headers <- function(discretized_exprs,
-                                                      target,
-                                                      n_genes_selected_in_first_step,
-                                                      minimum_su = FCBF_threshold,
-                                                      verbose = verbose){
-    output_of_fcbf_filter <-
+                                        target,
+                                        n_genes_selected_in_first_step,
+                                        minimum_su = FCBF_threshold,
+                                        verbose = verbose) {
+  output_of_fcbf_filter <-
     FCBF::fcbf(
       discretized_exprs,
       target,
@@ -778,15 +725,12 @@ run_fcbf_for_module_headers <- function(discretized_exprs,
       minimum_su = minimum_su,
       verbose = verbose
     )
-  
+
   output_of_fcbf_filter$gene <- rownames(output_of_fcbf_filter)
-  
+
   output_of_fcbf_filter$gene <- change_dots_for_dashes(output_of_fcbf_filter$gene)
-  
-  genes_from_fcbf_filter = output_of_fcbf_filter$gene
-  
+
+  genes_from_fcbf_filter <- output_of_fcbf_filter$gene
+
   return(genes_from_fcbf_filter)
-  
 }
-
-
