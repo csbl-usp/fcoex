@@ -279,7 +279,6 @@ get_minimum_su <- function(n_genes_selected_in_first_step, su_to_class, minimum_
   }
 }
 
-
 # Acessing the fcoex object -------
 
 #' Get the number of modules in a fcoex object
