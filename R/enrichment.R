@@ -1,3 +1,8 @@
+# Many parts of this code were directly adapted from the
+# CEMiTool package. This include chunks of copied and pasted code
+# located inside the source code for CEMiTool functions.
+# Functions that contained adapted code were explicit denoted.
+
 # Imports --------
 
 #' @importFrom clusterProfiler enricher
