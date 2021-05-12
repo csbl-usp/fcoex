@@ -31,7 +31,7 @@ a list with ggplot2 object and the number of significant gene sets
 }
 \description{
 This function was copied and adapted from the CEMiTool package.
-The visualization in this function is derivative of the 
+The visualization in this function is derivative of the
 intelectual work of CEMiTool's authors.
 }
 \keyword{internal}

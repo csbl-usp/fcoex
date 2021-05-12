@@ -21,5 +21,4 @@ This function was copied and adapted from the CEMiTool package.
 \examples{
 data("fc")
 nmodules(fc)
-
 }

@@ -2,3 +2,7 @@ Changes in version 0.99.0 (2019-09-09)
 + Submitted to Bioconductor
 Changes in version 1.1.1 (2020-05-08)
 + Updated fcoex example object "fc". 
+Changes in version 1.5.5 (2021-05-12)
++ Changed fcoex object to store a dgCMatrix instead of a dataframe for expression and discretized expression. 
++ Removed options of 3+ class multiclass discretize (may lead to backwards incompatibility) as they would
+be incompatible with better memory handling of dgCMatrix system.

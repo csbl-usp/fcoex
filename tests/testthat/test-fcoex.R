@@ -29,7 +29,7 @@ test_that("initializer works", {
 
 
 test_that("discretization works", {
-  expect_is(fc@discretized_expression, "data.frame")
+  expect_is(fc@discretized_expression, "dgCMatrix")
 })
 
 

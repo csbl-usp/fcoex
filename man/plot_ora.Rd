@@ -22,11 +22,11 @@ plot_ora(fc, n = 10, pv_cut = 0.05, ...)
 Object of class \code{fcoex} with ORA plots
 }
 \description{
-Creates a bar plot with the results of module overrepresentation analysis
+Creates a bar plot with the results of module Over Representation Analysis (ORA)
 }
 \details{
 This function was copied and adapted from the CEMiTool package.
-The visualization in this function is derivative of the 
+The visualization in this function is derivative of the
 intelectual work of CEMiTool's authors.
 }
 \examples{

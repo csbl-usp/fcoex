@@ -15,7 +15,7 @@ A subset with 600 sampled cells and the top 1700 variable
 genes from the  TENxPBMCData package pbmc3k dataset.
 }
 \details{
-Preprocessed in accordance to OSCA (August 2019, 
+Preprocessed in accordance to OSCA (August 2019,
 https://osca.bioconductor.org/)
 
 scater::normalized .

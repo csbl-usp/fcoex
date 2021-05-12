@@ -30,6 +30,8 @@ This function was modified from the CEMiTool package.
 Chunks of code were retained "as is"
 }
 \examples{
+\dontrun{
 data(fc)
 save_plots(fc, name = "Example")
+}
 }

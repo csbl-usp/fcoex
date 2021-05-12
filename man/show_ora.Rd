@@ -17,7 +17,7 @@ A plot corresponding to a fcoex analysis
 }
 \description{
 This function was copied and adapted from the CEMiTool package.
-The visualization in this function is derivative of the 
+The visualization in this function is derivative of the
 intelectual work of CEMiTool's authors.
 }
 \examples{

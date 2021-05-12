@@ -1,3 +1,5 @@
+#' @import Matrix
+NULL
 
 setOldClass("gg")
 setOldClass("ggplot")
@@ -31,8 +33,8 @@ setOldClass("gtable")
 setClass(
   "fcoex",
   slots = list(
-    expression = "data.frame",
-    discretized_expression = "data.frame",
+    expression = "dgCMatrix",
+    discretized_expression = "dgCMatrix",
     target = "factor",
     selected_genes = "vector",
     module_list = "list",
@@ -51,7 +53,7 @@ setClass(
 setMethod("initialize",
   signature = "fcoex",
   function(.Object, expression, target) {
-    .Object@expression <- expression
+    .Object@expression <- as(as.matrix(expression), "dgCMatrix")
     .Object@target <- target
     return(.Object)
   }
