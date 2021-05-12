@@ -12,6 +12,7 @@
 #' @importFrom pathwayPCA read_gmt
 #' @import SingleCellExperiment
 #' @import dplyr
+#' @import Matrix
 NULL
 
 
@@ -29,11 +30,12 @@ setOldClass("fcoex")
 #' "mean" (Split in ON/OFF by each gene mean expression),
 #' "median" (Split in ON/OFF by each gene median expression),
 #' "min_max_\%" (Similat to the "varying width", a binarization threshold
-#' in a % of the min-max range is set. (minmax\% param)),
+#' in a \% of the min-max range is set. (minmax\% param)),
 #' @param number_of_bins Number of equal-width bins for discretization.
 #' Note: it is a binary discretization, with the
 #' first bin becoming one class ('low') and the other bins, another class
-#' ('high').#' Defaults to 4.
+#' ('high').
+#' Defaults to 4.
 #' @param min_max_cutoff <- Modulator for the "min_max_\%" method.
 #' Defaults to 0.25.
 #' @return A data frame with the discretized features in the same
@@ -47,7 +49,6 @@ setOldClass("fcoex")
 #' fc <- new_fcoex(exprs, targets)
 #' fc <- discretize(fc)
 #' @import FCBF
-#' @import Matrix
 #' @rdname discretize
 #' @export
 setGeneric("discretize", function(fc,
@@ -68,8 +69,7 @@ setMethod("discretize", signature("fcoex"),
               FCBF::discretize_exprs(expression_table = expression_table,
                                      number_of_bins = number_of_bins,
                                      method = method,
-                                     min_max_cutoff = min_max_cutoff,
-                                     show_pb=TRUE)
+                                     min_max_cutoff = min_max_cutoff)
             colnames(discretized_expression) <-
               colnames(expression_table)
             discretized_expression = as.data.frame(ifelse(discretized_expression=="high", 1,0))

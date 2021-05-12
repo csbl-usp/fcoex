@@ -26,7 +26,8 @@ discretize(
 \item{number_of_bins}{Number of equal-width bins for discretization.
 Note: it is a binary discretization, with the
 first bin becoming one class ('low') and the other bins, another class
-('high').#' Defaults to 4.}
+('high').
+Defaults to 4.}
 
 \item{method}{Method applied to all genes for discretization.
 Methods available: "varying_width"
@@ -34,7 +35,7 @@ Methods available: "varying_width"
 "mean" (Split in ON/OFF by each gene mean expression),
 "median" (Split in ON/OFF by each gene median expression),
 "min_max_\%" (Similat to the "varying width", a binarization threshold
-in a % of the min-max range is set. (minmax\% param)),}
+in a \% of the min-max range is set. (minmax\% param)),}
 
 \item{min_max_cutoff}{<- Modulator for the "min_max_\%" method.
 Defaults to 0.25.}
