@@ -36,10 +36,9 @@ setOldClass("fcoex")
 #' ('high').#' Defaults to 4.
 #' @param min_max_cutoff <- Modulator for the "min_max_\%" method.
 #' Defaults to 0.25.
-#' @param show_pb Enables a progress bar for the discretization.
-#' Defaults to TRUE.
 #' @return A data frame with the discretized features in the same
 #' order as previously
+#' 
 #' @examples
 #' library(SingleCellExperiment)
 #' data("mini_pbmc3k")
@@ -54,10 +53,7 @@ setOldClass("fcoex")
 setGeneric("discretize", function(fc,
                                   number_of_bins = 4,
                                   method = "varying_width",
-                                  alpha = 1,
-                                  centers = 3,
-                                  min_max_cutoff = 0.25,
-                                  show_pb = TRUE) {
+                                  min_max_cutoff = 0.25) {
   standardGeneric("discretize")
 })
 
@@ -66,17 +62,14 @@ setMethod("discretize", signature("fcoex"),
           function(fc,
                    number_of_bins = 4,
                    method = "varying_width",
-                   min_max_cutoff = 0.25,
-                   show_pb = TRUE) {
+                   min_max_cutoff = 0.25) {
             expression_table <- fc@expression
             discretized_expression <-
-              FCBF::discretize_exprs(expression_table,
-                                     number_of_bins,
-                                     method,
-                                     alpha,
-                                     centers,
-                                     min_max_cutoff,
-                                     show_pb)
+              FCBF::discretize_exprs(expression_table = expression_table,
+                                     number_of_bins = number_of_bins,
+                                     method = method,
+                                     min_max_cutoff = min_max_cutoff,
+                                     show_pb=TRUE)
             colnames(discretized_expression) <-
               colnames(expression_table)
             discretized_expression = as.data.frame(ifelse(discretized_expression=="high", 1,0))
@@ -714,7 +707,7 @@ get_list_of_modules <-
 run_fcbf_for_module_headers <- function(discretized_exprs,
                                         target,
                                         n_genes_selected_in_first_step,
-                                        minimum_su = FCBF_threshold,
+                                        minimum_su,
                                         verbose = verbose) {
   output_of_fcbf_filter <-
     FCBF::fcbf(
