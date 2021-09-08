@@ -1,0 +1,151 @@
+## Integration to Seurat 
+
+This vignette is targeted at Seurat users that want to use fcoex. 
+
+A more in depth explanation of each fcoex step is available in the general vignette, which is based on bioconductor packages.
+
+Another popular framework for single-cell analysis is Seurat.
+Let's see how to integrate it with fcoex. 
+
+
+```{r Running Seurat pipeline, warning=FALSE}
+library(Seurat)
+library(fcoex)
+library(ggplot2)
+
+data(pbmc_small)
+
+exprs <- data.frame(GetAssayData(pbmc_small))
+target <- Idents(pbmc_small)
+
+fc <- new_fcoex(data.frame(exprs),target)
+fc <- discretize(fc)
+fc <- find_cbf_modules(fc,n_genes = 70, verbose = FALSE, is_parallel = FALSE)
+fc <- get_nets(fc)
+```
+
+Once again we can use the Reactome pathways from the package CEMiTool to exemplify how to run an enrichment for human genes.
+It is likely that some modules will not have any enrichment, leading to messages of the type "no gene can be mapped.". 
+That is not a problem.
+If you are not working with human genes, you can just skip this part.
+
+```{r}
+gmt_fname <- system.file("extdata", "pathways.gmt", package = "CEMiTool")
+gmt_in <- pathwayPCA::read_gmt(gmt_fname)
+fc <- mod_ora(fc, gmt_in)
+
+# In Seurat's sample data, pbmc small, no enrichments are found. 
+# That is way plot_ora is commented out.
+
+#fc <- plot_ora(fc)
+```
+
+```{r Saving Seurat plots, eval = FALSE}
+save_plots(name = "fcoex_vignette_Seurat", fc, force = TRUE, directory = "./Plots")
+```
+
+
+### Plotting clusters with  Seurat
+Now let's recluster fcoex and visualize the new clusters via the UMAP saved in the Seurat object.
+```{r Plotting and saving reclusters,  eval = FALSE}
+
+fc <- recluster(fc) 
+
+file_name <- "pbmc3k_recluster_plots.pdf"
+directory <- "./Plots/"
+
+pbmc_small <- RunUMAP(pbmc_small, dims = 1:10)
+
+pdf(paste0(directory,file_name), width = 3, height = 3)
+print(DimPlot(pbmc_small))
+for (i in names(module_genes(fc))){
+  Idents(pbmc_small ) <-   idents(fc)[[i]]
+  mod_name <- paste0("M", which(names(idents(fc)) == i), " (", i,")")
+
+  plot2 <- DimPlot(pbmc_small, reduction = 'umap', cols = c("darkgreen", "dodgerblue3")) +
+    ggtitle(mod_name) 
+    print(plot2)
+}
+dev.off()
+```
+
+
+The clusters generate by fcoex match possible matches different Seurat clusters. Looking at the HN clusters:
+M1 matches cluster 1 (likely monocytes), 
+M2 and M4 match  clusters 1 and 2 (likely APCs, B + monocytes),
+M5 matches cluster 2 (likeky B)
+M7 maches a subset of cluster 0, and as it includes granzymes and granulolysins, this subset of 0 is likely cytotoxic cells (either NK or CD8)
+
+Let's just take a look at the M2 individually:
+  
+  
+  ```{r}
+fc <- recluster(fc) 
+pbmc_small <- RunUMAP(pbmc_small, dims = 1:10)
+
+
+
+Idents(pbmc_small ) <-   target
+p1 <- DimPlot(pbmc_small)
+Idents(pbmc_small ) <-   idents(fc)[["HLA-DRB1"]]
+
+mod_name <- paste0("M", which(names(idents(fc)) == "HLA-DRB1"), " (", "HLA-DRB1",")")
+
+p2 <- DimPlot(pbmc_small, cols = c("darkgreen", "dodgerblue3")) +
+  ggtitle(mod_name) 
+
+# CD79A is a marker of B cells
+CD79A <- FeaturePlot(pbmc_small, "CD79A")
+
+# AIF1 is a marker of monocytes
+AIF1 <- FeaturePlot(pbmc_small, "AIF1")
+
+
+library(gridExtra)
+grid.arrange(p1, p2, p3,p4, ncol = 2)
+
+```
+
+
+### Detecting anticorrelated genes in the modules
+
+As the dataset used here is a small subset of the original, some cells might be in unexpected clusters.
+
+The modules capture also negative correlations. These can be especially interesting, as they point to complementary cell types.
+Let's look if the module genes are enriched in the cluster HP ( header positive, in blue) or HN (header negative, in green).
+
+
+```{r, message=FALSE}
+
+for (i in names(module_genes(fc))){
+Idents(pbmc_small ) <-   fc@mod_idents[[i]]
+
+# This bit prints which gene in the module belongs to each cluster. 
+# HP is the header-positive cluster (containing SOX19A), HN is the header negative cluster (not containing SOX19A)
+# The "features = fc@module_list[[i]]" parameter tells Seurat to compare only the genes in the module "i"
+# By removing this parameter, you can potentially expand the list that was retrieved originally by fcoex
+
+# Run only for module genes:
+module_genes_in_clusters <- FindAllMarkers(pbmc_small, logfc.threshold = 1, only.pos = TRUE, features = fc@module_list[[i]] )
+
+if("HN" %in% module_genes_in_clusters$cluster){
+module_genes_in_clusters$module = i
+message(paste0("anticorrelated genes found for module ", i))
+print(module_genes_in_clusters) 
+}
+}
+```
+
+There seems that only in the module HLA-DRB1 we have negative correlations. Let's visualize then
+
+```{r}
+TUBB1 <- FeaturePlot(pbmc_small, "TUBB1")
+DRB1 <-  FeaturePlot(pbmc_small, "HLA-DRB1")
+
+
+library(gridExtra)
+grid.arrange(p1, p2, TUBB1, DRB1, ncol = 2)
+
+```
+
+
