@@ -39,30 +39,31 @@ library(SingleCellExperiment, quietly = TRUE)
 data("mini_pbmc3k")
 ```
 
-The `mini_pbmc3k` object is an object of the class SingleCellExperiment that we will explores in the vignette. 
+The `mini_pbmc3k` object is an object of the class SingleCellExperiment that we will explores in the vignette.
 For more information on the class, check this [Introduction to the SingleCellExperiment Class](https://bioconductor.org/packages/release/bioc/vignettes/SingleCellExperiment/inst/doc/intro.html). 
-Let's look at the object:
-
-```{r Plotting single-cell object}
-mini_pbmc3k
-```
-
 
 ### Creating the fcoex object
 
-
-The fcoex object is created from 2 different pieces: a previously normalized expression table (genes in rows) and a target factor with classes for the cells. (Note: fcoex does not need _names_, but only _clusters_, so you can run it even if you do not have clear labels!)
+The fcoex object is created from 2 different pieces: a previously normalized expression table (genes in rows) and a target factor with classes for the cells. (Note: fcoex does not need _names_, but only _clusters_, so you can run it even if you do not have names for your clusters.)
 
 
 ```{r Creating fcoex object, message=FALSE }
+
+# Get clusters from the pre-processing
 target <- colData(mini_pbmc3k)
 target <- target$clusters
+
+# Get normalized table from the pre-processing
 exprs <- as.data.frame(assay(mini_pbmc3k, 'logcounts'))
+
+# Create fcoex object
 fc <- new_fcoex(data.frame(exprs),target)
 ```
 
-The first step is to convert a count matrix into a discretized dataframe. 
-The standard of fcoex is a simple binarization that works as follows:
+Once you have set up your fcoex object, the first step is to convert a count matrix into a binarized dataframe.
+The binarization is needed for the fcoex algorithm and empirically we notice that significant biological signal is preserved with the default parameters. 
+
+The standard of fcoex works as follows:
 
 For each gene, the maximum and minimum values are stored. 
 This range is divided in n bins of equal width (parameter to be set).
@@ -74,20 +75,16 @@ fc <- discretize(fc, number_of_bins = 8)
 
 ### Getting the modules
 
-Other discretizations are avaible too, and this step affects the final results in many ways.
-However, we found empirically that the default parameter often yields interesting results. 
+Other discretization methods are avaible too, and this step affects the final results in many ways. If you have the time, you can try different discretization parameters and observe the impact in the data. 
 
-You might want to try different discretization parameters and observe the impact in the data. 
-
-After the discretization, we proceed to constructing a network and extracting modules. 
-The co-expression adjacency matriz generated is modular in its inception. 
+After the discretization, fcoex builds a co-expression network and extracts modules. 
 Correlations are calculated via a information-theory method called Symmetrical Uncertainty. Three steps are present:
 
 1 - Selection of n genes to be considered, ranked by correlation to the target variable. 
 
 2 - Detection of predominantly correlated genes, a feature selection approach defined in the FCBF algorithm
 
-3 - Building of modules around selected genes. Correlations between two genes are kept if they are more correlated to each other than to the target lables
+3 - Building of modules around selected genes. Correlations between two genes are kept if they are more correlated to each other than to the target.
 
 You can choose either to have a non-parallel processing, with a progress bar, or a faster parallel processing without progress bar. Up to you. 
 
@@ -95,11 +92,12 @@ You can choose either to have a non-parallel processing, with a progress bar, or
 fc <- find_cbf_modules(fc,n_genes_selected_in_first_step = 200, verbose = FALSE, is_parallel = FALSE)
 ```
 
+The last step created an adjacency matrix and extracted some co-expression modules. 
+We can present that information in a visual way by using the `get_nets` function, that generates network plots for each module. The plots are created in the `ggplot2` format and stored inside the fcoex object. 
 
-The get_nets function takes the modules and plot networks. 
 The visualizations it generates were heavily inspired by the CEMiTool package, as much of the code in fcoex was.
 
-We will take a look at the first two networks 
+We will take a look at the first two networks using the `show_net` function.
 
 ```{r Plotting module networks, message=FALSE }
 fc <- get_nets(fc)
@@ -109,7 +107,7 @@ show_net(fc)[["CD79A"]]
 show_net(fc)[["HLA-DRB1"]]
 ```
 
-To save the plots, you can run the save plots function, which will create a "./Plots" directory and store plots there.
+To save the plots, you can run the save plots function, which will create a "./Plots" directory and store plots there in a pdf format.
 
 ```{r Saving plots, eval= FALSE, message=FALSE, results='hide'}
 save_plots(name = "fcoex_vignette", fc,force = TRUE, directory = "./Plots")
@@ -179,7 +177,7 @@ It is interesting to see that two groups are present, header-positive (HP) and h
 The stratification and exploration of different clustering points of view is 
 one of the core features of fcoex.
 
-We will use the package schex for visualizing the data, but you can use your package of preference.
+We will use the package [schex](https://bioconductor.org/packages/release/bioc/html/schex.html) for visualizing the data, but you can use your package of preference.
 
 ```{r Visualizing}
 identities_based_on_the_HLA_DRB1_module <- idents(fc)$`HLA-DRB1` 
