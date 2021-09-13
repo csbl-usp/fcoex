@@ -205,6 +205,8 @@ setMethod("find_cbf_modules", signature("fcoex"),
             list_of_fcbf_modules <-
               get_list_of_modules(module_headers, filtered_gene_by_gene_su_correlation)
             
+            message(paste0(as.character(length(list_of_fcbf_modules)), " modules were found."))
+            
             fc@selected_genes <- genes_from_su_ranking
             fc@adjacency <- gene_by_gene_su_correlation
             fc@adjacency_trimmed <-
