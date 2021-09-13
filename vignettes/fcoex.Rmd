@@ -48,7 +48,6 @@ The fcoex object is created from 2 different pieces: a previously normalized exp
 
 
 ```{r Creating fcoex object, message=FALSE }
-
 # Get clusters from the pre-processing
 target <- colData(mini_pbmc3k)
 target <- target$clusters
@@ -103,15 +102,21 @@ We will take a look at the first two networks using the `show_net` function.
 fc <- get_nets(fc)
 
 # Taking a look at the first two networks: 
-show_net(fc)[["CD79A"]]
-show_net(fc)[["HLA-DRB1"]]
+network_plots <- show_net(fc)
+
+network_plots[["CD79A"]]
+network_plots[["HLA-DRB1"]]
 ```
+Depending on your graphical device, the network might not appear in full. 
+Saving the plots to a vector format, such as pdf, fixes some graphical device issues.
 
 To save the plots, you can run the save plots function, which will create a "./Plots" directory and store plots there in a pdf format.
 
 ```{r Saving plots, eval= FALSE, message=FALSE, results='hide'}
 save_plots(name = "fcoex_vignette", fc,force = TRUE, directory = "./Plots")
 ```
+
+Additionaly, you can use the [ggsave](https://ggplot2.tidyverse.org/reference/ggsave.html) funcion of the `ggplot2` package. 
 
 ### Running an enrichment analysis
 
@@ -122,13 +127,15 @@ Be sure, though, that the labels of the genes in the gene sets match the ones in
 It is likely that some modules will not have any enrichment, leading to messages of the type "no gene can be mapped.". That is not a problem.
 
 ```{r Running ORA analysis, warning=FALSE}
-gmt_fname <- system.file("extdata", "pathways.gmt", package = "CEMiTool")
 
-if (gmt_fname == "")
+# You'll need CEMiTool, if you do not have it installed, just run BiocManager::install("CEMiTool")
+gmt_filename <- system.file("extdata", "pathways.gmt", package = "CEMiTool")
+
+if (gmt_filename == "")
   {
       print("You likely need to install CEMiTool")
 } else {
-      gmt_in <- pathwayPCA::read_gmt(gmt_fname,  description = TRUE)
+      gmt_in <- pathwayPCA::read_gmt(gmt_filename,  description = TRUE)
 
 }
 fc <- mod_ora(fc, gmt_in)
@@ -138,29 +145,23 @@ fc <- plot_ora(fc)
 Now we can save the plots again. 
 Note that we have to set the force parameter equal to TRUE now, as the "./Plots" directory was already created in the previous step. 
 
-
 ```{r Saving plots again,  eval= FALSE, message=FALSE, results='hide'}
 save_plots(name = "fcoex_vignette", fc, force = TRUE, directory = "./Plots")
 ```
 
-
 ### Reclustering the cells to find module-based populations.
 
-There is now a folder with the correlations, to explore the data. 
-
 We will use the module assignments to subdivide the cells in populations of interest. 
-This is a way to explore the data and look for possible novel groupings ignored in the previous clustering step.
+This is a way to explore the data and look for possible novel groupings ignored in the pre-processing.
 
 ```{r Reclustering , message=FALSE}
 fc <- recluster(fc)
 ```
 
-
 Why reclustering? Well, the algorithm behind fcoex considers at the same time inverse and direct correlations. 
 Thus, it is nonsense to obtain a plot of the average expression of the genes in a module, for example.  
 
 The reclustering allows us to gather all the signal in the dataset, positive and negative, to see how cells in the dataset behave in relation to that subpart of the transcriptomic space.
-
 
 ### Plotting clusters with schex
 

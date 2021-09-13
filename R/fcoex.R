@@ -40,7 +40,7 @@ setOldClass("fcoex")
 #' Defaults to 0.25.
 #' @return A data frame with the discretized features in the same
 #' order as previously
-#' 
+#'
 #' @examples
 #' library(SingleCellExperiment)
 #' data("mini_pbmc3k")
@@ -66,13 +66,16 @@ setMethod("discretize", signature("fcoex"),
                    min_max_cutoff = 0.25) {
             expression_table <- fc@expression
             discretized_expression <-
-              FCBF::discretize_exprs(expression_table = expression_table,
-                                     number_of_bins = number_of_bins,
-                                     method = method,
-                                     min_max_cutoff = min_max_cutoff)
+              FCBF::discretize_exprs(
+                expression_table = expression_table,
+                number_of_bins = number_of_bins,
+                method = method,
+                min_max_cutoff = min_max_cutoff
+              )
             colnames(discretized_expression) <-
               colnames(expression_table)
-            discretized_expression = as.data.frame(ifelse(discretized_expression=="high", 1,0))
+            discretized_expression = as.data.frame(ifelse(discretized_expression ==
+                                                            "high", 1, 0))
             
             discretized_matrix = as(as.matrix(discretized_expression), "dgCMatrix")
             
@@ -138,13 +141,13 @@ setMethod("find_cbf_modules", signature("fcoex"),
             discretized_exprs = as.data.frame(as.matrix(fc@discretized_expression))
             index <- 1:ncol(discretized_exprs)
             discretized_exprs[, index] <-
-              lapply(discretized_exprs[, index], factor, levels=c(1, 0))
+              lapply(discretized_exprs[, index], factor, levels = c(1, 0))
             
             target <- fc@target
-            print(FCBF_threshold)
+            
             check_rownames(discretized_exprs)
             
-            message("Getting SU scores")
+            message("Getting SU scores for each gene")
             
             su_to_class <-
               get_su_ranking_in_relation_to_class(discretized_exprs, target)
@@ -161,7 +164,7 @@ setMethod("find_cbf_modules", signature("fcoex"),
               target,
               n_genes_selected_in_first_step,
               minimum_su = minimum_su_for_the_fcbf_algorithm,
-              verbose = verbose
+              verbose = FALSE
             )
             
             su_to_class_higher_than_minimum_su <-
@@ -191,19 +194,21 @@ setMethod("find_cbf_modules", signature("fcoex"),
             
             message("Trimming and getting modules from adjacency matrix")
             
-            filtered_gene_by_gene_su_correlation <- trim_correlation_matrix(
-              genes_from_su_ranking,
-              gene_by_gene_su_correlation,
-              su_to_class,
-              su_to_class_higher_than_minimum_su
-            )
+            filtered_gene_by_gene_su_correlation <-
+              trim_correlation_matrix(
+                genes_from_su_ranking,
+                gene_by_gene_su_correlation,
+                su_to_class,
+                su_to_class_higher_than_minimum_su
+              )
             
             list_of_fcbf_modules <-
               get_list_of_modules(module_headers, filtered_gene_by_gene_su_correlation)
             
             fc@selected_genes <- genes_from_su_ranking
             fc@adjacency <- gene_by_gene_su_correlation
-            fc@adjacency_trimmed <- filtered_gene_by_gene_su_correlation
+            fc@adjacency_trimmed <-
+              filtered_gene_by_gene_su_correlation
             fc@module_list <- list_of_fcbf_modules
             return(fc)
           })
@@ -257,7 +262,8 @@ get_su_ranking_in_relation_to_class <-
   function(discretized_exprs, target) {
     su_to_class <-
       FCBF::get_su_for_feature_table_and_vector(discretized_exprs, target)
-    su_to_class$gene <- change_dots_for_dashes(rownames(su_to_class))
+    su_to_class$gene <-
+      change_dots_for_dashes(rownames(su_to_class))
     colnames(su_to_class)[1] <- "SU"
     return(su_to_class)
   }
@@ -600,11 +606,10 @@ get_gene_by_gene_correlation_matrix_in_series <-
     gene_by_gene_su_correlation <-
       data.frame(genes = genes_from_su_ranking)
     
-    pb_findclusters <- progress_bar$new(total = length(genes_from_su_ranking),
-                                        format = "[:bar] :percent eta:
-                                                  :eta")
+    pb_findclusters <-
+      progress_bar$new(total = length(genes_from_su_ranking),
+                       format = "[:bar] :percent eta: :eta")
     for (gene_i in genes_from_su_ranking) {
-      print(gene_i)
       pb_findclusters$tick()
       
       discrete_vector_of_gene_i <-
@@ -626,7 +631,8 @@ get_gene_by_gene_correlation_matrix_in_series <-
       
       colnames(gene_i_correlates)[1] <- gene_i
       
-      gene_by_gene_su_correlation[, gene_i] <- gene_i_correlates[, 1]
+      gene_by_gene_su_correlation[, gene_i] <-
+        gene_i_correlates[, 1]
     }
     
     gene_by_gene_su_correlation <- gene_by_gene_su_correlation[,-1]
@@ -686,7 +692,6 @@ get_list_of_modules <-
     list_of_fcbf_modules <- list()
     
     for (seed in genes_from_fcbf_filter) {
-      print(seed)
       
       correlated_genes_score <-
         filtered_gene_by_gene_su_correlation[, seed]

@@ -6,3 +6,5 @@ Changes in version 1.5.5 (2021-05-12)
 + Changed fcoex object to store a dgCMatrix instead of a dataframe for expression and discretized expression. 
 + Removed options of 3+ class multiclass discretize (may lead to backwards incompatibility) as they would
 be incompatible with better memory handling of dgCMatrix system.
+Changes in next version
++ Updated the Vignette and created a separated one for integration with Seurat 

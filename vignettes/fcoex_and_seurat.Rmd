@@ -4,9 +4,7 @@ This vignette is targeted at Seurat users that want to use fcoex.
 
 A more in depth explanation of each fcoex step is available in the general vignette, which is based on bioconductor packages.
 
-Another popular framework for single-cell analysis is Seurat.
-Let's see how to integrate it with fcoex. 
-
+To integrate a pre-processed Seurat object with fcoex, it is only necessary to obtain the normalized expression matrix and the cluster identities, and then run the pipeline:
 
 ```{r Running Seurat pipeline, warning=FALSE}
 library(Seurat)
@@ -37,7 +35,7 @@ fc <- mod_ora(fc, gmt_in)
 # In Seurat's sample data, pbmc small, no enrichments are found. 
 # That is way plot_ora is commented out.
 
-#fc <- plot_ora(fc)
+# fc <- plot_ora(fc)
 ```
 
 ```{r Saving Seurat plots, eval = FALSE}
