@@ -1,3 +1,22 @@
+---
+title: 'fcoex: co-expression for single-cell data integrated with Seurat'
+author:
+- name: Tiago Lubiana
+  affiliation: Computational Systems Biology Laboratory, University of São Paulo, Brazil
+output:
+  html_document:
+    toc: yes
+  pdf_document:
+    toc: yes
+  prettydoc::html_pretty:
+    highlight: github
+    theme: cayman
+package: fcoex
+vignette: > 
+  %\VignetteIndexEntry{fcoex: co-expression for single-cell data integrated with Seurat}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
 ## Integration to Seurat 
 
 This vignette is targeted at Seurat users that want to use fcoex. 
@@ -21,6 +40,23 @@ fc <- discretize(fc)
 fc <- find_cbf_modules(fc,n_genes = 70, verbose = FALSE, is_parallel = FALSE)
 fc <- get_nets(fc)
 ```
+Let's take a look at the modules headers:
+
+```{r Checking module headers, warning=FALSE}
+mod_names(fc)
+```
+
+S100A8 is a marker of some granulocytes and MS4A1 is a markers of B cells. Let's take a look at those two modules. 
+
+```{r Plotting nets}
+mod_names(fc)
+
+network_plots <- show_net(fc)
+
+network_plots[["S100A8"]]
+network_plots[["MS4A1"]]
+```
+
 
 Once again we can use the Reactome pathways from the package CEMiTool to exemplify how to run an enrichment for human genes.
 It is likely that some modules will not have any enrichment, leading to messages of the type "no gene can be mapped.". 
@@ -42,108 +78,120 @@ fc <- mod_ora(fc, gmt_in)
 save_plots(name = "fcoex_vignette_Seurat", fc, force = TRUE, directory = "./Plots")
 ```
 
-
 ### Plotting clusters with  Seurat
-Now let's recluster fcoex and visualize the new clusters via the UMAP saved in the Seurat object.
-```{r Plotting and saving reclusters,  eval = FALSE}
 
-fc <- recluster(fc) 
+One application of fcoex is to find overlapping populations of cells in the dataset, by employing a module-based view of the gene expression landscape. 
 
-file_name <- "pbmc3k_recluster_plots.pdf"
-directory <- "./Plots/"
+Why reclustering? Well, the algorithm behind fcoex considers at the same time inverse and direct correlations. 
+Thus, it is nonsense to obtain a plot of the average expression of the genes in a module, for example.  
+The reclustering allows us to gather all the signal in the dataset, positive and negative, to see how cells in the dataset behave in relation to that subpart of the transcriptomic space.
 
-pbmc_small <- RunUMAP(pbmc_small, dims = 1:10)
+Now let's recluster the cells for some of the fcoex module and visualize it in Seurat .
 
-pdf(paste0(directory,file_name), width = 3, height = 3)
-print(DimPlot(pbmc_small))
-for (i in names(module_genes(fc))){
-  Idents(pbmc_small ) <-   idents(fc)[[i]]
-  mod_name <- paste0("M", which(names(idents(fc)) == i), " (", i,")")
+The cells will be divided on two groups: header positive (HP) and header negative (HN). 
+For details on why, see the next session on anti-correlated genes.
 
-  plot2 <- DimPlot(pbmc_small, reduction = 'umap', cols = c("darkgreen", "dodgerblue3")) +
-    ggtitle(mod_name) 
-    print(plot2)
-}
-dev.off()
-```
-
-
-The clusters generate by fcoex match possible matches different Seurat clusters. Looking at the HN clusters:
-M1 matches cluster 1 (likely monocytes), 
-M2 and M4 match  clusters 1 and 2 (likely APCs, B + monocytes),
-M5 matches cluster 2 (likeky B)
-M7 maches a subset of cluster 0, and as it includes granzymes and granulolysins, this subset of 0 is likely cytotoxic cells (either NK or CD8)
-
-Let's just take a look at the M2 individually:
-  
-  
-  ```{r}
-fc <- recluster(fc) 
-pbmc_small <- RunUMAP(pbmc_small, dims = 1:10)
-
-
-
-Idents(pbmc_small ) <-   target
-p1 <- DimPlot(pbmc_small)
-Idents(pbmc_small ) <-   idents(fc)[["HLA-DRB1"]]
-
-mod_name <- paste0("M", which(names(idents(fc)) == "HLA-DRB1"), " (", "HLA-DRB1",")")
-
-p2 <- DimPlot(pbmc_small, cols = c("darkgreen", "dodgerblue3")) +
-  ggtitle(mod_name) 
-
-# CD79A is a marker of B cells
-CD79A <- FeaturePlot(pbmc_small, "CD79A")
-
-# AIF1 is a marker of monocytes
-AIF1 <- FeaturePlot(pbmc_small, "AIF1")
-
-
+```{r Plotting reclusters}
 library(gridExtra)
-grid.arrange(p1, p2, p3,p4, ncol = 2)
+
+fc <- recluster(fc) 
+
+# Running UMAP to obtain layout for cells
+pbmc_small <- RunUMAP(pbmc_small, dims = 1:10)
+
+plot1 <- DimPlot(pbmc_small)
+
+pbmc_reclustered <- pbmc_small
+
+# S100A8 is a marker of some monocytes
+
+Idents(pbmc_reclustered) <- idents(fc)[["S100A8"]]
+plot2  <- DimPlot(pbmc_reclustered, reduction = 'umap', cols = c("darkgreen", "dodgerblue3")) +
+  ggtitle("S100A8")
+    
+
+# HLA-DPB1 is a marker of Antigen Presenting Cells
+Idents(pbmc_reclustered) <- idents(fc)[["HLA-DPB1"]]
+plot3  <- DimPlot(pbmc_reclustered, reduction = 'umap', cols = c("darkgreen", "dodgerblue3")) +
+  ggtitle("HLA-DPB1")
+
+# MS4A1 is a marker of B cells
+Idents(pbmc_reclustered) <- idents(fc)[["MS4A1"]]
+plot4  <- DimPlot(pbmc_reclustered, reduction = 'umap', cols = c("darkgreen", "dodgerblue3")) +
+  ggtitle("MS4A1")
+
+grid.arrange(plot1, plot2, plot3, plot4, nrow=2)
 
 ```
+If you notice the "HP" clusters, you will see that the "HLA-DPB1" recluster covers roughly the same cells as the combination of the "S100A8" recluster and the "MS4A1" reclusters. 
+This is expected, as both B cells and monocytes are antigen presenting cells. 
 
+Notice that these overlapped insights are not possible looking by one single flat output.
 
 ### Detecting anticorrelated genes in the modules
 
-As the dataset used here is a small subset of the original, some cells might be in unexpected clusters.
+The  fcoex modules capture also negative correlations.
+hese can be especially interesting, as they point to complementary cell classes.
 
-The modules capture also negative correlations. These can be especially interesting, as they point to complementary cell types.
-Let's look if the module genes are enriched in the cluster HP ( header positive, in blue) or HN (header negative, in green).
+Each module has one "header" gene. The other genes in the module are either in the same cells of the header (thus, header-positive cells, or HP), or present in the other cells of the dataset (header negative). 
 
+For all the modules, we will check to see if such anti-correlations are present .
 
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE}
 
-for (i in names(module_genes(fc))){
-Idents(pbmc_small ) <-   fc@mod_idents[[i]]
-
-# This bit prints which gene in the module belongs to each cluster. 
-# HP is the header-positive cluster (containing SOX19A), HN is the header negative cluster (not containing SOX19A)
-# The "features = fc@module_list[[i]]" parameter tells Seurat to compare only the genes in the module "i"
-# By removing this parameter, you can potentially expand the list that was retrieved originally by fcoex
-
-# Run only for module genes:
-module_genes_in_clusters <- FindAllMarkers(pbmc_small, logfc.threshold = 1, only.pos = TRUE, features = fc@module_list[[i]] )
-
-if("HN" %in% module_genes_in_clusters$cluster){
-module_genes_in_clusters$module = i
-message(paste0("anticorrelated genes found for module ", i))
-print(module_genes_in_clusters) 
-}
+for (i in names(module_genes(fc))) {
+  Idents(pbmc_reclustered) <-   fc@mod_idents[[i]]
+  
+  print(paste("Checking for anticorrelation in module", i))
+ 
+  # Identify markers only for module genes:
+  module_genes_in_clusters <-
+    FindAllMarkers(
+      pbmc_reclustered,
+      logfc.threshold = 1,
+      only.pos = TRUE,
+      features = fc@module_list[[i]],
+      verbose = FALSE
+    )
+  
+  # If there are markers of the HN cluster, it means that we have anticorrelation
+  if ("HN" %in% module_genes_in_clusters$cluster) {
+    module_genes_in_clusters$module = i
+    message(paste0("anticorrelated genes found for module ", i))
+  }
 }
 ```
 
 There seems that only in the module HLA-DRB1 we have negative correlations. Let's visualize then
 
+
+```{r, message=FALSE, warning=FALSE}
+Idents(pbmc_reclustered) <-   fc@mod_idents[["HLA-DRB1"]]
+
+markers_for_cluster_HLA_DRB1 <-
+    FindAllMarkers(
+      pbmc_reclustered,
+      logfc.threshold = 1,
+      only.pos = TRUE,
+      features = fc@module_list[["HLA-DRB1"]],
+      verbose = FALSE
+    )
+
+print(markers_for_cluster_HLA_DRB1)
+```
+
+We can see that the HLA genes are in the "HP" direction and TUBB1, GP9 and NGFRAP1 are in the opposing direction.
+
+Let's look at the expression patterns in the UMAP plot.
+
 ```{r}
 TUBB1 <- FeaturePlot(pbmc_small, "TUBB1")
 DRB1 <-  FeaturePlot(pbmc_small, "HLA-DRB1")
 
-
-library(gridExtra)
-grid.arrange(p1, p2, TUBB1, DRB1, ncol = 2)
+grid.arrange(TUBB1, DRB1, ncol = 2)
 
 ```
 
+The completeness is not perfect (it is a small example dataset), but we can already see the disjoint pattern of expression. 
 
+The anticorrelations provide an additional layer of exploration of the dataset, and might indicate complementary populations of cells, like senders and receivers, or disjoint expression programs.
