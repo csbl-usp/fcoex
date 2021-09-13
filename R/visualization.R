@@ -477,10 +477,11 @@ setMethod(
     }, plots)
     if (length(plots) < 2) {
       message(
-        "Saving available plots."
+        paste0("Saving available plots at the directory '", directory, "'")
       )
     }
-    lapply(names(plots), function(pl) {
+    # Empty output added to avoid printing
+    empty_output <- lapply(names(plots), function(pl) {
       pdf(file = file.path(directory, paste0(name, "_", pl, ".pdf")))
       dev.off()
     })
