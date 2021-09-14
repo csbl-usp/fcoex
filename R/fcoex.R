@@ -614,6 +614,8 @@ get_gene_by_gene_correlation_matrix_in_series <-
     for (gene_i in genes_from_su_ranking) {
       pb_findclusters$tick()
       
+      # As.factor is processing a dataframe
+      # In R 4.1 this leads to a Warning: cannot xtfrm data frames
       discrete_vector_of_gene_i <-
         as.factor(expression_table_only_with_genes_with_high_su[gene_i,])
       
