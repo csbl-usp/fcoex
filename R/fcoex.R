@@ -605,6 +605,11 @@ change_dots_for_dashes <- function(vector_of_genes) {
 get_gene_by_gene_correlation_matrix_in_series <-
   function(genes_from_su_ranking,
            expression_table_only_with_genes_with_high_su) {
+    mtx <- factor(as.matrix(expression_table_only_with_genes_with_high_su))
+    dim(mtx) <- dim(expression_table_only_with_genes_with_high_su)
+    dimnames(mtx) <- dimnames(expression_table_only_with_genes_with_high_su)
+    expression_table_only_with_genes_with_high_su <- I(mtx)
+    
     gene_by_gene_su_correlation <-
       data.frame(genes = genes_from_su_ranking)
     
